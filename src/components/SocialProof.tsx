@@ -23,37 +23,37 @@ const itemVariants = {
 
 export default function SocialProof() {
   return (
-    <section className="py-12 md:py-16 bg-[#050505] relative z-10">
+    <section className="relative z-10 py-12 md:py-16">
       <div className="container mx-auto px-6 md:px-12 lg:px-24">
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-12 sm:gap-24 md:gap-32 lg:gap-48"
+          className="glass soft-grid flex flex-col items-center justify-center gap-10 rounded-[2rem] px-6 py-10 sm:flex-row sm:gap-16 md:gap-24 md:px-10"
         >
           <motion.div 
             variants={itemVariants}
             className="text-center group cursor-default"
           >
-            <div className="text-4xl sm:text-5xl md:text-6xl font-bold mb-2 text-[#EAEAEA] tracking-tight group-hover:scale-110 transition-transform duration-500 ease-out">10K+</div>
-            <div className="text-[#555555] font-semibold tracking-[0.2em] uppercase text-[10px] sm:text-xs group-hover:text-[#888888] transition-colors duration-500">Active Learners</div>
+            <div className="mb-2 text-4xl font-bold tracking-tight text-[#EAEAEA] transition-transform duration-500 ease-out group-hover:scale-110 sm:text-5xl md:text-6xl">10K+</div>
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-[#7B8592] transition-colors duration-500 group-hover:text-[#A5B0BE] sm:text-xs">Active Learners</div>
           </motion.div>
           
           <motion.div 
             variants={itemVariants}
             className="text-center group cursor-default"
           >
-            <div className="text-4xl sm:text-5xl md:text-6xl font-bold mb-2 text-[#EAEAEA] tracking-tight group-hover:scale-110 transition-transform duration-500 ease-out">50+</div>
-            <div className="text-[#555555] font-semibold tracking-[0.2em] uppercase text-[10px] sm:text-xs group-hover:text-[#888888] transition-colors duration-500">Institutions</div>
+            <div className="mb-2 text-4xl font-bold tracking-tight text-[#EAEAEA] transition-transform duration-500 ease-out group-hover:scale-110 sm:text-5xl md:text-6xl">50+</div>
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-[#7B8592] transition-colors duration-500 group-hover:text-[#A5B0BE] sm:text-xs">Institutions</div>
           </motion.div>
           
           <motion.div 
             variants={itemVariants}
             className="text-center group cursor-default"
           >
-            <div className="text-4xl sm:text-5xl md:text-6xl font-bold mb-2 text-[#EAEAEA] tracking-tight group-hover:scale-110 transition-transform duration-500 ease-out">94%</div>
-            <div className="text-[#555555] font-semibold tracking-[0.2em] uppercase text-[10px] sm:text-xs group-hover:text-[#888888] transition-colors duration-500">Success Rate</div>
+            <div className="mb-2 text-4xl font-bold tracking-tight text-[#EAEAEA] transition-transform duration-500 ease-out group-hover:scale-110 sm:text-5xl md:text-6xl">94%</div>
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-[#7B8592] transition-colors duration-500 group-hover:text-[#A5B0BE] sm:text-xs">Success Rate</div>
           </motion.div>
         </motion.div>
       </div>

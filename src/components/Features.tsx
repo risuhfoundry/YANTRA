@@ -42,10 +42,10 @@ function FeatureCard({ feature, index }: { feature: typeof features[0], index: n
       viewport={{ once: true }}
       transition={{ duration: 0.8, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
       onMouseMove={handleMouseMove}
-      className="relative p-8 rounded-2xl bg-[#0A0A0A] border border-white/[0.05] hover:border-white/[0.1] transition-colors duration-500 group overflow-hidden"
+      className="glass relative overflow-hidden rounded-[1.75rem] p-8 transition-colors duration-500 group hover:border-white/[0.12]"
     >
       <motion.div
-        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition duration-300 group-hover:opacity-100"
+        className="pointer-events-none absolute -inset-px rounded-[1.75rem] opacity-0 transition duration-300 group-hover:opacity-100"
         style={{
           background: useMotionTemplate`
             radial-gradient(
@@ -57,11 +57,14 @@ function FeatureCard({ feature, index }: { feature: typeof features[0], index: n
         }}
       />
       <div className="relative z-10">
-        <div className="w-10 h-10 rounded-full bg-white/[0.03] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+        <div className="mb-4 font-mono text-[11px] font-semibold tracking-[0.24em] text-white/35">
+          0{index + 1}
+        </div>
+        <div className="w-10 h-10 rounded-full bg-white/[0.04] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
           {feature.icon}
         </div>
         <h3 className="text-xl font-semibold mb-3 text-[#EAEAEA] tracking-tight">{feature.title}</h3>
-        <p className="text-[#777777] leading-relaxed font-light text-sm md:text-base">{feature.description}</p>
+        <p className="text-[#98A2B3] leading-relaxed text-sm md:text-base">{feature.description}</p>
       </div>
     </motion.div>
   );
@@ -72,8 +75,9 @@ export default function Features() {
     <section id="features" className="py-24 md:py-32 bg-[#020202]">
       <div className="container mx-auto px-6 md:px-12 lg:px-24">
         <div className="text-center max-w-2xl mx-auto mb-16 md:mb-24">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6 text-[#EAEAEA] leading-[1.1]">Everything you need to succeed</h2>
-          <p className="text-[#9CA3AF] text-base md:text-lg font-light leading-relaxed">A complete ecosystem designed to take you from beginner to hired professional.</p>
+          <div className="section-kicker mb-6">Platform stack</div>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6 text-[#EAEAEA] leading-[1.1]">Everything you need to move from learning to placement</h2>
+          <p className="text-[#9CA3AF] text-base md:text-lg leading-relaxed">A focused learning system that keeps assessment, guidance, proof of skill, and job momentum in one flow.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
