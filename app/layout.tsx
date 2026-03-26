@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import 'katex/dist/katex.min.css';
 import '../src/styles/globals.css';
 
 export const metadata: Metadata = {

@@ -33,6 +33,7 @@ It gives the product:
 - CTA-driven prompts from other components
 - dashboard prompt actions
 - friendly error states
+- markdown and LaTeX rendering in message bubbles
 
 ## Current Limitations
 

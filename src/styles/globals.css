@@ -93,3 +93,18 @@
 .animation-delay-6000 {
   animation-delay: 6s;
 }
+
+.yantra-markdown .katex {
+  color: inherit;
+}
+
+.yantra-markdown .katex-display {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.125rem;
+}
+
+.yantra-markdown pre {
+  margin: 0;
+}

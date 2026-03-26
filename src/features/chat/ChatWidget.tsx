@@ -17,6 +17,7 @@ import {
   yantraWelcomeMessage,
   type YantraChatMessage,
 } from '@/src/features/chat/yantra-chat';
+import ChatMessageContent from '@/src/features/chat/ChatMessageContent';
 
 type OpenChatOptions = {
   draft?: string;
@@ -164,7 +165,7 @@ function ChatPanel({
                               : 'rounded-3xl rounded-bl-md border border-white/10 bg-white/[0.05] px-4 py-3 text-sm leading-relaxed text-white/88 md:px-5 md:py-4'
                           }
                         >
-                          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                          <ChatMessageContent content={message.content} variant={message.role} />
                         </div>
                       </div>
                     ))}
