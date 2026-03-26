@@ -5,8 +5,10 @@ import {
   ArrowRight,
   BookOpen,
   Brain,
+  CalendarDays,
   ChartColumn,
   CirclePlay,
+  Clock3,
   Database,
   Flame,
   Layers3,
@@ -14,23 +16,16 @@ import {
   Menu,
   Sparkles,
   TerminalSquare,
+  TrendingUp,
   UserCircle2,
   Waypoints,
   X,
   type LucideIcon,
 } from 'lucide-react';
-import { motion, useInView, useMotionValue, useSpring } from 'motion/react';
+import { motion, useInView } from 'motion/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChatProvider, useChatWidget } from '@/src/features/chat/ChatWidget';
-
-type OverviewCard = {
-  label: string;
-  value: string;
-  detail: string;
-  note: string;
-  icon: LucideIcon;
-  featured?: boolean;
-};
+import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
 
 type SkillCard = {
   title: string;
@@ -52,35 +47,52 @@ type RoomCard = {
   texture: string;
 };
 
-const overviewCards: OverviewCard[] = [
+type MomentumBar = {
+  day: string;
+  containerHeight: number;
+  fillHeight: number;
+  bright?: boolean;
+};
+
+type CurriculumNode = {
+  module: string;
+  title: string;
+  description: string;
+  status: string;
+  unlocked: boolean;
+};
+
+const weeklyMomentumBars: MomentumBar[] = [
+  { day: 'MON', containerHeight: 96, fillHeight: 75 },
+  { day: 'TUE', containerHeight: 128, fillHeight: 100, bright: true },
+  { day: 'WED', containerHeight: 80, fillHeight: 50 },
+  { day: 'THU', containerHeight: 144, fillHeight: 100, bright: true },
+  { day: 'FRI', containerHeight: 112, fillHeight: 25 },
+  { day: 'SAT', containerHeight: 48, fillHeight: 0 },
+  { day: 'SUN', containerHeight: 48, fillHeight: 0 },
+];
+
+const curriculumNodes: CurriculumNode[] = [
   {
-    label: 'Current Track',
-    value: 'AI Foundations',
-    detail: 'Core path',
-    note: 'Logic, data handling, and model intuition are flowing together now.',
-    icon: BookOpen,
-    featured: true,
+    module: 'Module 01',
+    title: 'Wave-Particle Duality',
+    description: 'Fundamental concepts of light behavior and measurement apparatus.',
+    status: '75% complete',
+    unlocked: true,
   },
   {
-    label: 'Skills Progress',
-    value: '6/18',
-    detail: 'Concepts completed',
-    note: 'Your strongest momentum is still coming from guided practice loops.',
-    icon: ChartColumn,
+    module: 'Module 02',
+    title: 'Entanglement Theory',
+    description: 'Exploring non-local correlations in quantum mechanical systems.',
+    status: 'Locked',
+    unlocked: false,
   },
   {
-    label: 'Next Session',
-    value: 'Neural Nets',
-    detail: 'Recommended next',
-    note: 'The next room is ready as soon as you want a more visual challenge.',
-    icon: Sparkles,
-  },
-  {
-    label: 'Weekly Momentum',
-    value: '4',
-    detail: 'Focused sessions',
-    note: 'A steady rhythm is active, and your streak is holding cleanly.',
-    icon: Flame,
+    module: 'Module 03',
+    title: 'Hilbert Spaces',
+    description: 'Mathematical frameworks for vector spaces in quantum states.',
+    status: 'Locked',
+    unlocked: false,
   },
 ];
 
@@ -186,51 +198,6 @@ const aiPrompts = [
   'Open my next room',
 ];
 
-function DashboardCursor() {
-  const [isHovered, setIsHovered] = useState(false);
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
-  const cursorXSpring = useSpring(cursorX, { damping: 30, stiffness: 420, mass: 0.42 });
-  const cursorYSpring = useSpring(cursorY, { damping: 30, stiffness: 420, mass: 0.42 });
-
-  useEffect(() => {
-    const updateMousePosition = (event: MouseEvent) => {
-      cursorX.set(event.clientX - 7);
-      cursorY.set(event.clientY - 7);
-    };
-
-    const handleMouseOver = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      setIsHovered(Boolean(target.closest('a, button, input, textarea, .hoverable')));
-    };
-
-    window.addEventListener('mousemove', updateMousePosition);
-    window.addEventListener('mouseover', handleMouseOver);
-
-    return () => {
-      window.removeEventListener('mousemove', updateMousePosition);
-      window.removeEventListener('mouseover', handleMouseOver);
-    };
-  }, [cursorX, cursorY]);
-
-  return (
-    <>
-      <motion.div
-        className="pointer-events-none fixed left-0 top-0 z-[110] hidden h-3.5 w-3.5 rounded-full bg-white mix-blend-difference md:block"
-        style={{ x: cursorXSpring, y: cursorYSpring }}
-        animate={{ scale: isHovered ? 2.8 : 1 }}
-        transition={{ scale: { type: 'spring', stiffness: 320, damping: 24 } }}
-      />
-      <motion.div
-        className="pointer-events-none fixed left-0 top-0 z-[109] hidden rounded-full border border-white/18 md:block"
-        style={{ x: cursorXSpring, y: cursorYSpring, translateX: -17, translateY: -17, width: 40, height: 40 }}
-        animate={{ scale: isHovered ? 1.14 : 1, opacity: isHovered ? 0.82 : 0.3 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-      />
-    </>
-  );
-}
-
 function DashboardBackground() {
   return (
     <div className="pointer-events-none fixed inset-0 z-[-1] overflow-hidden bg-[#050505]">
@@ -314,6 +281,8 @@ function DashboardNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  useOverlayLock('dashboard-mobile-nav', mobileMenuOpen);
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 18);
     window.addEventListener('scroll', handleScroll);
@@ -365,12 +334,15 @@ function DashboardNav() {
               Open Yantra AI
             </button>
 
-            <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 backdrop-blur-xl">
+            <Link
+              href="/dashboard/student-profile"
+              className="flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 backdrop-blur-xl transition-colors hover:bg-white/[0.08] hoverable"
+            >
               <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/12 bg-white/[0.06] text-white/70">
                 <UserCircle2 size={16} />
               </div>
               <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/58">Aarav</div>
-            </div>
+            </Link>
           </div>
 
           <button
@@ -386,7 +358,8 @@ function DashboardNav() {
 
       {mobileMenuOpen && (
         <motion.div
-          className="fixed inset-0 z-[70] flex flex-col bg-black/92 p-6 backdrop-blur-2xl md:hidden"
+          data-lenis-prevent
+          className="fixed inset-0 z-[70] flex flex-col overflow-y-auto bg-black/92 p-6 backdrop-blur-2xl md:hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -411,6 +384,20 @@ function DashboardNav() {
                 {link.label}
               </motion.a>
             ))}
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Link
+                href="/dashboard/student-profile"
+                className="rounded-full border border-white/12 bg-white/[0.04] px-7 py-3 font-mono text-[11px] uppercase tracking-[0.24em] text-white hoverable"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Student Profile
+              </Link>
+            </motion.div>
 
             <motion.button
               type="button"
@@ -578,58 +565,249 @@ function HeroSection() {
 }
 
 function OverviewSection() {
+  const masteryProgress = 33;
+  const masteryCircumference = 2 * Math.PI * 58;
+  const masteryOffset = masteryCircumference - (masteryCircumference * masteryProgress) / 100;
+
   return (
     <SectionShell
       id="overview"
       number="01"
       eyebrow="Dashboard Snapshot"
-      title="A calmer view of direction, momentum, and what matters next."
-      description="The overview keeps the same structure as the sample, but the cards now feel more spatial and editorial so the dashboard breathes with the rest of Yantra."
+      title="Student Overview with stitched depth, momentum, and next-step clarity."
+      description="This overview keeps the focus on one learner only: current track, mastery progress, upcoming session, weekly momentum, and active curriculum nodes."
     >
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
-        {overviewCards.map((card, index) => (
-          <motion.div
-            key={card.label}
-            className={`group relative overflow-hidden rounded-[2rem] border border-white/8 bg-white/[0.035] p-6 backdrop-blur-[24px] transition-all duration-500 hover:-translate-y-1 hover:bg-white/[0.055] hoverable ${
-              card.featured ? 'xl:col-span-2' : 'xl:col-span-1'
-            }`}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.55, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className="absolute right-[-18%] top-[-18%] h-32 w-32 rounded-full bg-white/[0.08] blur-[80px] transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <motion.article
+          className="group relative overflow-hidden rounded-[2rem] border border-white/8 bg-white/[0.035] p-8 backdrop-blur-[24px] transition-all duration-500 hover:-translate-y-1 hover:bg-white/[0.05] hoverable xl:col-span-8"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="absolute right-[-12%] top-[-20%] h-64 w-64 rounded-full bg-white/[0.05] blur-[90px]" />
 
-            <div className="relative z-10 flex h-full flex-col">
+          <div className="relative z-10 flex h-full flex-col justify-between gap-10">
+            <div className="space-y-6">
               <div className="flex items-center justify-between gap-4">
-                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/36">{card.label}</div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/56">
-                  <card.icon size={16} />
+                <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/36">Current Learning Track</span>
+                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/58">
+                  <BookOpen size={18} />
                 </div>
               </div>
 
-              <div className="mt-8 font-display text-3xl font-medium leading-none text-white md:text-4xl">{card.value}</div>
-              <div className="mt-3 text-sm uppercase tracking-[0.2em] text-white/34">{card.detail}</div>
-              <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/52">{card.note}</p>
-
-              {card.featured && (
-                <div className="mt-auto pt-8">
-                  <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">
-                    <span>Path Energy</span>
-                    <span>Stable + rising</span>
-                  </div>
-                  <div className="mt-3 grid grid-cols-6 gap-1.5">
-                    {[36, 48, 58, 72, 80, 65].map((height) => (
-                      <div key={height} className="h-16 rounded-full bg-white/6 px-1.5 pb-1.5 pt-6">
-                        <div className="w-full rounded-full bg-white" style={{ height: `${height}%` }} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="max-w-xl">
+                <h3 className="font-display text-4xl font-semibold leading-tight text-white md:text-5xl">
+                  Quantum Physics Basics
+                </h3>
+                <p className="mt-4 max-w-md text-sm leading-relaxed text-white/50">
+                  Your current path is centered on foundational theory, visual intuition, and the discipline needed for
+                  deeper model-based thinking.
+                </p>
+              </div>
             </div>
-          </motion.div>
-        ))}
+
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="#rooms"
+                  className="rounded-full bg-white px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-black transition-transform duration-300 hover:scale-[0.98] hoverable"
+                >
+                  Continue Module
+                </a>
+                <a
+                  href="#skills"
+                  className="rounded-full border border-white/10 bg-white/[0.05] px-6 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-white transition-colors hover:bg-white/[0.08] hoverable"
+                >
+                  Syllabus
+                </a>
+              </div>
+
+              <div className="text-left lg:text-right">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/36">Estimated Completion</p>
+                <p className="mt-2 font-display text-xl text-white">October 14</p>
+              </div>
+            </div>
+          </div>
+        </motion.article>
+
+        <motion.article
+          className="group relative overflow-hidden rounded-[2rem] border border-white/8 bg-white/[0.035] p-8 backdrop-blur-[24px] transition-all duration-500 hover:-translate-y-1 hover:bg-white/[0.05] hoverable xl:col-span-4"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.55, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/36">Mastery Nodes</span>
+            <div className="text-white/24">
+              <ChartColumn size={18} />
+            </div>
+          </div>
+
+          <div className="mt-10 flex flex-col items-center text-center">
+            <div className="relative mb-6 h-32 w-32">
+              <svg className="h-32 w-32 -rotate-90" viewBox="0 0 128 128" aria-hidden="true">
+                <circle cx="64" cy="64" r="58" fill="transparent" stroke="currentColor" strokeWidth="2" className="text-white/6" />
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="58"
+                  fill="transparent"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeDasharray={masteryCircumference}
+                  strokeDashoffset={masteryOffset}
+                  className="text-white transition-all duration-1000"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="font-display text-3xl font-light text-white">{masteryProgress}%</span>
+              </div>
+            </div>
+
+            <p className="font-display text-4xl font-semibold text-white">6 / 18</p>
+            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/36">Competency Nodes Unlocked</p>
+          </div>
+        </motion.article>
+
+        <motion.article
+          className="group relative overflow-hidden rounded-[2rem] border border-white/8 bg-white/[0.035] p-8 backdrop-blur-[24px] transition-all duration-500 hover:-translate-y-1 hover:bg-white/[0.05] hoverable xl:col-span-5"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.55, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="space-y-8">
+            <span className="block font-mono text-[10px] uppercase tracking-[0.24em] text-white/36">Upcoming Session</span>
+
+            <div className="flex items-start gap-5">
+              <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-[1.5rem] border border-white/10 bg-white/[0.05]">
+                <span className="font-display text-2xl font-semibold text-white">09</span>
+                <span className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/34">Sept</span>
+              </div>
+
+              <div>
+                <h3 className="font-display text-2xl font-semibold text-white">Neural Architectures</h3>
+                <p className="mt-2 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/36">
+                  <CalendarDays size={14} />
+                  <span>Today</span>
+                  <Clock3 size={14} />
+                  <span>14:00 - 15:30</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 rounded-[1.25rem] border border-white/8 bg-white/[0.05] p-4">
+              <div className="h-9 w-9 overflow-hidden rounded-full border border-white/20">
+                <img
+                  className="h-full w-full object-cover"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpoo9QQe7-grUqAABIO6mxlMzdEsO_CEOFycjE2ZZsky25yoqNgFUZvmlwClwkrK11N0GiwZ3rfxFLzAStZRVnoBYgf82tkZ9-9Jfcpx8jbkoyOcgdEgttvH0sBslgVtju5bmdjnAYxBJmxO_uXcRmX0NZIpJf4kYGCsHuan9NCuRE8axnhcdNOXB6SILcLKWUKThVWPLDr7Qw2Jje_itaNaSUx37l6GZXp60WURy7LSOdR5ydCZwsDos9Y3PVuB4RxhFyQmzZ5XUE"
+                  alt="Instructor portrait"
+                />
+              </div>
+
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/78">Dr. Helena Vance</p>
+                <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-white/30">Lead Researcher</p>
+              </div>
+
+              <button
+                type="button"
+                className="ml-auto rounded-full p-2 text-white/40 transition-colors hover:bg-white/5 hover:text-white hoverable"
+                aria-label="Open session"
+              >
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </motion.article>
+
+        <motion.article
+          className="group relative overflow-hidden rounded-[2rem] border border-white/8 bg-white/[0.035] p-8 backdrop-blur-[24px] transition-all duration-500 hover:-translate-y-1 hover:bg-white/[0.05] hoverable xl:col-span-7"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.55, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/36">Weekly Momentum</span>
+            <div className="flex gap-2">
+              <span className="h-2 w-2 rounded-full bg-white" />
+              <span className="h-2 w-2 rounded-full bg-white/10" />
+              <span className="h-2 w-2 rounded-full bg-white/10" />
+            </div>
+          </div>
+
+          <div className="mt-10 grid h-40 grid-cols-7 items-end gap-4 px-2 md:px-4">
+            {weeklyMomentumBars.map((bar) => (
+              <div key={bar.day} className="flex flex-col items-center gap-4">
+                <div
+                  className="relative w-full overflow-hidden rounded-t-full bg-white/5"
+                  style={{ height: `${bar.containerHeight}px` }}
+                >
+                  {bar.fillHeight > 0 ? (
+                    <div
+                      className={`absolute bottom-0 w-full ${bar.bright ? 'bg-white shadow-[0_0_20px_rgba(255,255,255,0.28)]' : 'bg-white/20'}`}
+                      style={{ height: `${bar.fillHeight}%` }}
+                    />
+                  ) : null}
+                </div>
+                <span className="font-mono text-[8px] uppercase tracking-[0.18em] text-white/30">{bar.day}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-col gap-4 border-t border-white/5 pt-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <span className="font-display text-3xl font-semibold text-white">4 Sessions</span>
+              <span className="ml-0 mt-2 block font-mono text-[10px] uppercase tracking-[0.16em] text-white/36 md:ml-3 md:mt-0 md:inline">
+                Completed this week
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-white/58">
+              <TrendingUp size={16} />
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em]">+12% vs last week</span>
+            </div>
+          </div>
+        </motion.article>
+      </div>
+
+      <div className="mt-14">
+        <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/30">Active Curriculum Nodes</div>
+
+        <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {curriculumNodes.map((node, index) => (
+            <motion.article
+              key={node.module}
+              className={`group relative overflow-hidden rounded-[2rem] border border-white/8 bg-white/[0.035] p-6 backdrop-blur-[24px] transition-all duration-500 hover:-translate-y-1 hoverable ${
+                node.unlocked ? 'hover:bg-white/[0.05]' : 'opacity-65 grayscale-[0.15] hover:opacity-100 hover:bg-white/[0.045]'
+              }`}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, delay: 0.08 * index, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="flex items-center justify-between gap-4">
+                <span className={`h-1.5 w-1.5 rounded-full ${node.unlocked ? 'bg-white' : 'bg-white/20'}`} />
+                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/30">{node.module}</span>
+              </div>
+
+              <div className="mt-6">
+                <h4 className="font-display text-xl font-medium text-white">{node.title}</h4>
+                <p className="mt-3 text-sm leading-relaxed text-white/44">{node.description}</p>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between gap-4">
+                <span className={`font-mono text-[9px] uppercase tracking-[0.16em] ${node.unlocked ? 'text-white/60' : 'text-white/36'}`}>
+                  {node.status}
+                </span>
+                {node.unlocked ? <Sparkles size={16} className="text-white/56" /> : <Lock size={16} className="text-white/24" />}
+              </div>
+            </motion.article>
+          ))}
+        </div>
       </div>
     </SectionShell>
   );
@@ -896,7 +1074,6 @@ function DashboardExperience() {
   return (
     <div className="relative min-h-screen bg-black text-white">
       <DashboardBackground />
-      <DashboardCursor />
       <DashboardNav />
 
       <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-24 px-5 pb-20 md:gap-32 md:px-8 md:pb-24">

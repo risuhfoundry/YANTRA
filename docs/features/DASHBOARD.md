@@ -3,8 +3,11 @@
 ## Route
 
 - `/dashboard`
+- `/dashboard/student-profile`
 - Entry file: `app/dashboard/page.tsx`
 - Main implementation: `src/features/dashboard/StudentDashboard.tsx`
+- Student profile entry file: `app/dashboard/student-profile/page.tsx`
+- Student profile implementation: `src/features/dashboard/StudentProfilePage.tsx`
 
 ## Purpose
 
@@ -17,6 +20,7 @@ It currently showcases:
 - skill cards
 - practice room entry points
 - embedded Yantra AI actions
+- a dedicated student profile management screen
 
 ## Main Sections
 
@@ -27,6 +31,15 @@ It currently showcases:
 - practice rooms section
 - Yantra AI section
 - footer
+
+## Student Profile Screen
+
+- fixed institutional top navigation and side navigation
+- editable student identity card with verified badge and progress slider
+- supporting activity cards for performance and scheduling
+- curriculum progression rail with complete, active, and locked states
+- interactive nav, support, roster, settings, and notifications controls
+- student profile edits persist in browser local storage on the client
 
 ## Data Model Today
 
