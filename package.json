@@ -9,7 +9,7 @@
     "start": "next start",
     "preview": "next start",
     "clean": "rmdir /s /q .next 2>nul",
-    "lint": "tsc --noEmit"
+    "lint": "next typegen && npx tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
