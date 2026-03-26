@@ -24,48 +24,95 @@ const ExperienceContext = createContext<ExperienceContextValue | null>(null);
 const smoothEase = (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t));
 
 function SharedCursor({ enabled }: { enabled: boolean }) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const innerSize = 14;
+  const outerSize = 40;
+  const outerOffset = (outerSize - innerSize) / 2;
+  const interactiveSelector =
+    'a, button, input, textarea, select, label, summary, .hoverable, [role="button"]';
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
-  const innerX = useSpring(cursorX, { damping: 28, stiffness: 420, mass: 0.45 });
-  const innerY = useSpring(cursorY, { damping: 28, stiffness: 420, mass: 0.45 });
-  const outerX = useSpring(cursorX, { damping: 22, stiffness: 250, mass: 0.7 });
-  const outerY = useSpring(cursorY, { damping: 22, stiffness: 250, mass: 0.7 });
+  const innerOpacity = useMotionValue(0);
+  const outerOpacity = useMotionValue(0);
+  const innerScale = useMotionValue(0.7);
+  const outerScale = useMotionValue(1);
+  const innerOpacitySpring = useSpring(innerOpacity, { damping: 32, stiffness: 520, mass: 0.2 });
+  const outerOpacitySpring = useSpring(outerOpacity, { damping: 28, stiffness: 320, mass: 0.3 });
+  const innerScaleSpring = useSpring(innerScale, { damping: 30, stiffness: 460, mass: 0.28 });
+  const outerScaleSpring = useSpring(outerScale, { damping: 26, stiffness: 320, mass: 0.42 });
 
   useEffect(() => {
+    const resetCursor = () => {
+      cursorX.set(-100);
+      cursorY.set(-100);
+      innerOpacity.set(0);
+      outerOpacity.set(0);
+      innerScale.set(0.7);
+      outerScale.set(1);
+    };
+
     if (!enabled) {
-      setIsVisible(false);
-      setIsHovered(false);
+      resetCursor();
       return;
     }
 
+    let isVisible = false;
+    let isHovered = false;
+
+    const syncAppearance = () => {
+      innerOpacity.set(isVisible ? 1 : 0);
+      outerOpacity.set(isVisible ? (isHovered ? 0.76 : 0.3) : 0);
+      innerScale.set(isVisible ? (isHovered ? 2.1 : 1) : 0.7);
+      outerScale.set(isHovered ? 1.08 : 1);
+    };
+
     const updatePosition = (event: PointerEvent) => {
-      cursorX.set(event.clientX - 7);
-      cursorY.set(event.clientY - 7);
-      setIsVisible(true);
+      if (event.pointerType && event.pointerType !== 'mouse') {
+        return;
+      }
+
+      cursorX.set(event.clientX - innerSize / 2);
+      cursorY.set(event.clientY - innerSize / 2);
+
+      const target = event.target;
+      const nextHovered = target instanceof Element ? Boolean(target.closest(interactiveSelector)) : false;
+
+      if (!isVisible || nextHovered !== isHovered) {
+        isVisible = true;
+        isHovered = nextHovered;
+        syncAppearance();
+      }
     };
 
-    const updateHoverState = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      setIsHovered(Boolean(target?.closest('a, button, input, textarea, select, label, .hoverable, [role="button"]')));
+    const hideCursor = () => {
+      if (!isVisible) {
+        return;
+      }
+
+      isVisible = false;
+      syncAppearance();
     };
 
-    const hideCursor = () => setIsVisible(false);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        hideCursor();
+      }
+    };
+
     const cursorBoundary = document.documentElement;
 
-    window.addEventListener('pointermove', updatePosition);
+    window.addEventListener('pointermove', updatePosition, { passive: true });
     window.addEventListener('blur', hideCursor);
     cursorBoundary.addEventListener('mouseleave', hideCursor);
-    window.addEventListener('mouseover', updateHoverState);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('pointermove', updatePosition);
       window.removeEventListener('blur', hideCursor);
       cursorBoundary.removeEventListener('mouseleave', hideCursor);
-      window.removeEventListener('mouseover', updateHoverState);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      resetCursor();
     };
-  }, [enabled, cursorX, cursorY]);
+  }, [cursorX, cursorY, enabled, innerOpacity, innerScale, interactiveSelector, outerOpacity, outerScale]);
 
   if (!enabled) {
     return null;
@@ -75,33 +122,31 @@ function SharedCursor({ enabled }: { enabled: boolean }) {
     <>
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[120] hidden h-3.5 w-3.5 rounded-full bg-white mix-blend-difference md:block"
-        style={{ x: innerX, y: innerY }}
-        animate={{
-          opacity: isVisible ? 1 : 0,
-          scale: isHovered ? 2.8 : isVisible ? 1 : 0.7,
-        }}
-        transition={{
-          opacity: { duration: 0.18, ease: [0.16, 1, 0.3, 1] },
-          scale: { type: 'spring', stiffness: 300, damping: 24 },
+        className="pointer-events-none fixed left-0 top-0 z-[120] hidden rounded-full bg-white mix-blend-difference md:block"
+        style={{
+          x: cursorX,
+          y: cursorY,
+          width: innerSize,
+          height: innerSize,
+          opacity: innerOpacitySpring,
+          scale: innerScaleSpring,
+          willChange: 'transform, opacity',
         }}
       />
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[119] hidden rounded-full border border-white/20 md:block"
+        className="pointer-events-none fixed left-0 top-0 z-[119] hidden rounded-full border border-white/18 md:block"
         style={{
-          x: outerX,
-          y: outerY,
-          translateX: -18,
-          translateY: -18,
-          width: 44,
-          height: 44,
+          x: cursorX,
+          y: cursorY,
+          translateX: -outerOffset,
+          translateY: -outerOffset,
+          width: outerSize,
+          height: outerSize,
+          opacity: outerOpacitySpring,
+          scale: outerScaleSpring,
+          willChange: 'transform, opacity',
         }}
-        animate={{
-          opacity: isVisible ? (isHovered ? 0.82 : 0.28) : 0,
-          scale: isHovered ? 1.08 : 1,
-        }}
-        transition={{ type: 'spring', stiffness: 240, damping: 22 }}
       />
     </>
   );
