@@ -4,6 +4,7 @@ import Lenis from 'lenis';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'motion/react';
 import {
+  Suspense,
   createContext,
   useCallback,
   useContext,
@@ -414,7 +415,9 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
   return (
     <ExperienceContext.Provider value={value}>
       {children}
-      <RouteTransitionOverlay />
+      <Suspense fallback={null}>
+        <RouteTransitionOverlay />
+      </Suspense>
     </ExperienceContext.Provider>
   );
 }
