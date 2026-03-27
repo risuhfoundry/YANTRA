@@ -6,9 +6,40 @@ create table if not exists public.profiles (
   skill_level text not null default 'Beginner' check (skill_level in ('Beginner', 'Intermediate', 'Advanced')),
   progress integer not null default 0 check (progress >= 0 and progress <= 100),
   academic_year text not null default to_char(now(), 'YYYY'),
+  user_role text,
+  onboarding_completed boolean not null default false,
+  onboarding_completed_at timestamptz,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.profiles
+  add column if not exists user_role text,
+  add column if not exists onboarding_completed boolean default false,
+  add column if not exists onboarding_completed_at timestamptz;
+
+update public.profiles
+set onboarding_completed = coalesce(onboarding_completed, false);
+
+alter table public.profiles
+  alter column onboarding_completed set default false,
+  alter column onboarding_completed set not null;
+
+alter table public.profiles drop constraint if exists profiles_user_role_check;
+
+alter table public.profiles
+  add constraint profiles_user_role_check
+  check (
+    user_role is null
+    or user_role in (
+      'School Student (12-18)',
+      'College Student (18-25)',
+      'Self-Learner (Any Age)',
+      'Teacher / Educator',
+      'Institution / School',
+      'Hiring Company'
+    )
+  );
 
 create or replace function public.set_profiles_updated_at()
 returns trigger

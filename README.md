@@ -5,6 +5,7 @@ Yantra is a Next.js-based AI learning platform prototype with a public marketing
 ## Main Routes
 
 - `/` public marketing site
+- `/onboarding` required role selection after signup
 - `/dashboard` student dashboard
 - `/api/chat` AI chat endpoint
 

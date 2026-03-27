@@ -9,6 +9,7 @@ This project now supports Supabase-based email/password authentication and a per
 - auth session cookies
 - protected dashboard routes
 - persisted student profile records
+- onboarding role selection before dashboard access
 
 ## Environment Variables
 
@@ -46,8 +47,10 @@ Inside Supabase Auth settings, add:
 ## What The App Does
 
 - `/signup` creates a Supabase account
+- `/onboarding` collects the user's Yantra role before the main dashboard opens
 - `/login` signs the user in
 - `/dashboard` redirects to `/login` if no valid session exists
+- `/dashboard` redirects to `/onboarding` until the signed-in user has completed role selection
 - `/dashboard/student-profile` reads and saves the current learner profile from Supabase instead of local browser storage
 
 ## First Live Test Flow
@@ -59,9 +62,19 @@ Inside Supabase Auth settings, add:
 5. Start the app with `npm run dev`.
 6. Open `/signup` and create a user.
 7. If email confirmation is enabled, confirm the email from your inbox.
-8. Log in at `/login`.
-9. Open `/dashboard`.
+8. Complete the `/onboarding` role selection screen.
+9. Verify that the app redirects to `/dashboard`.
 10. Open `/dashboard/student-profile`, edit the record, and save it.
+
+## Onboarding Columns
+
+The `profiles` table now also stores:
+
+- `user_role`
+- `onboarding_completed`
+- `onboarding_completed_at`
+
+Re-run `supabase/schema.sql` against an existing project to add these columns if your table was created before onboarding was introduced.
 
 ## Production Checklist
 

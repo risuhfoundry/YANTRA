@@ -1,18 +1,12 @@
-import { redirect } from 'next/navigation';
 import StudentProfilePage from '@/src/features/dashboard/StudentProfilePage';
-import { hasSupabaseEnv } from '@/src/lib/supabase/env';
-import { getAuthenticatedProfile } from '@/src/lib/supabase/profiles';
+import { requireAuthenticatedProfile } from '@/src/lib/supabase/route-guards';
 
 export default async function DashboardStudentProfilePage() {
-  if (!hasSupabaseEnv()) {
-    redirect('/login?message=Configure%20Supabase%20first.&kind=error');
-  }
-
-  const result = await getAuthenticatedProfile();
-
-  if (!result) {
-    redirect('/login?message=Log%20in%20to%20open%20your%20profile.&kind=info');
-  }
+  const result = await requireAuthenticatedProfile({
+    unauthenticatedRedirect: '/login?message=Log%20in%20to%20open%20your%20profile.&kind=info',
+    requireOnboarding: true,
+    onboardingRedirect: '/onboarding?message=Choose%20your%20Yantra%20role%20before%20opening%20your%20profile.&kind=info',
+  });
 
   return <StudentProfilePage initialProfileData={result.profile} defaultProfileData={result.defaultProfile} />;
 }

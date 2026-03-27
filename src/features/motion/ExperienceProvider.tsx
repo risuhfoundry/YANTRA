@@ -4,6 +4,7 @@ import Lenis from 'lenis';
 import { motion, useMotionValue, useSpring } from 'motion/react';
 import {
   createContext,
+  Suspense,
   useCallback,
   useContext,
   useEffect,
@@ -12,11 +13,13 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import PageTransitionBar from './PageTransitionBar';
 
 type ExperienceContextValue = {
   isOverlayActive: boolean;
   reducedMotion: boolean;
   setOverlayState: (name: string, active: boolean) => void;
+  startPageTransition: () => void;
 };
 
 const ExperienceContext = createContext<ExperienceContextValue | null>(null);
@@ -157,6 +160,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
   const [reducedMotion, setReducedMotion] = useState(true);
   const [cursorEnabled, setCursorEnabled] = useState(false);
   const [overlayStates, setOverlayStates] = useState<Record<string, boolean>>({});
+  const [pageTransitionKey, setPageTransitionKey] = useState(0);
 
   const isOverlayActive = Object.values(overlayStates).some(Boolean);
 
@@ -179,6 +183,10 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
         [name]: true,
       };
     });
+  }, []);
+
+  const startPageTransition = useCallback(() => {
+    setPageTransitionKey((current) => current + 1);
   }, []);
 
   useEffect(() => {
@@ -290,13 +298,21 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       isOverlayActive,
       reducedMotion,
       setOverlayState,
+      startPageTransition,
     }),
-    [isOverlayActive, reducedMotion, setOverlayState],
+    [isOverlayActive, reducedMotion, setOverlayState, startPageTransition],
   );
 
   return (
     <ExperienceContext.Provider value={value}>
       {children}
+      <Suspense fallback={null}>
+        <PageTransitionBar
+          reducedMotion={reducedMotion}
+          startKey={pageTransitionKey}
+          onIntent={startPageTransition}
+        />
+      </Suspense>
       <SharedCursor enabled={cursorEnabled} />
     </ExperienceContext.Provider>
   );
@@ -330,4 +346,12 @@ export function useExperience() {
   }
 
   return context;
+}
+
+export function usePageTransition() {
+  const { startPageTransition } = useExperience();
+
+  return {
+    startPageTransition,
+  };
 }

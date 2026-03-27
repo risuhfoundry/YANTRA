@@ -3,50 +3,17 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { motion, animate, useInView } from 'motion/react';
-import { ArrowRight, BookOpen, Globe, Menu, Palette, X } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
 import { ChatProvider, useChatWidget } from '@/src/features/chat/ChatWidget';
 import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
 import { yantraCtaPrompts } from '@/src/features/chat/yantra-chat';
-
-const accessDetails = {
-  primary: 'AI-native learning operating system',
-  audience: 'Built for learners, institutions, and hiring partners',
-  status: 'Learner accounts are previewing now, and pilot conversations remain open for partners.',
-};
-
-const tickerItems = [
-  'AI SKILL DIAGNOSIS',
-  'PERSONALIZED ROADMAPS',
-  'CERTIFICATIONS',
-  'JOB MATCHING',
-];
-
-const academicCards = [
-  {
-    icon: <BookOpen size={32} />,
-    title: 'AI TUTORING',
-    desc: 'Yantra adapts to each learner in real time with guided lessons, feedback loops, and contextual support that keeps momentum high.',
-  },
-  {
-    icon: <Globe size={32} />,
-    title: 'ADAPTIVE ROADMAPS',
-    desc: 'The platform analyzes skill level, goal, and pace to generate a focused path instead of sending users through generic course clutter.',
-  },
-  {
-    icon: <Palette size={32} />,
-    title: 'PROOF & PLACEMENT',
-    desc: 'Projects, certifications, and employer-aligned signals stay connected so learning translates into visible progress and job readiness.',
-  },
-];
-
-const campusHighlights = [
-  { title: 'Students', gradient: 'from-white/[0.16] via-white/[0.05] to-transparent', height: 'h-64' },
-  { title: 'Career Switchers', gradient: 'from-white/[0.14] via-white/[0.04] to-transparent', height: 'h-96' },
-  { title: 'Institutions', gradient: 'from-white/[0.12] via-white/[0.03] to-transparent', height: 'h-80' },
-  { title: 'Hiring Partners', gradient: 'from-white/[0.18] via-white/[0.05] to-transparent', height: 'h-96' },
-  { title: 'Certification Paths', gradient: 'from-white/[0.14] via-white/[0.04] to-transparent', height: 'h-72' },
-  { title: 'Job Matching', gradient: 'from-white/[0.1] via-white/[0.03] to-transparent', height: 'h-64' },
-];
+import {
+  marketingAcademicCards,
+  marketingAccessDetails,
+  marketingCampusHighlights,
+  marketingNavLinks,
+  marketingTickerItems,
+} from './marketing-content';
 
 function FluidBackground() {
   return (
@@ -92,13 +59,6 @@ function Nav() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const links = [
-    { label: 'Platform', href: '#about' },
-    { label: 'Capabilities', href: '#academics' },
-    { label: 'Use Cases', href: '#campus-life' },
-    { label: 'Access', href: '#contact' },
-  ];
-
   return (
     <>
       <motion.nav
@@ -115,7 +75,7 @@ function Nav() {
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
-            {links.map((link) => (
+            {marketingNavLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
@@ -164,7 +124,7 @@ function Nav() {
           </div>
 
           <div className="flex flex-1 flex-col items-center justify-center gap-6 py-10">
-            {links.map((link, index) => (
+            {marketingNavLinks.map((link, index) => (
               <motion.a
                 key={link.label}
                 href={link.href}
@@ -182,7 +142,7 @@ function Nav() {
               className="mt-8 flex w-full max-w-sm flex-col gap-4"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: links.length * 0.1 }}
+              transition={{ delay: marketingNavLinks.length * 0.1 }}
             >
               <Link
                 href="/signup"
@@ -211,7 +171,7 @@ function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          AI-native learning OS • Personalized paths
+          AI-native learning OS - Personalized paths
         </motion.div>
 
         <h1 className="flex flex-wrap justify-center text-[5.5rem] leading-none font-heading tracking-normal sm:text-8xl md:text-[12rem]">
@@ -285,7 +245,7 @@ function Ticker() {
       >
         {[...Array(2)].map((_, index) => (
           <div key={index} className="flex items-center gap-8">
-            {tickerItems.map((item) => (
+            {marketingTickerItems.map((item) => (
               <div key={`${index}-${item}`} className="flex items-center gap-8">
                 <span>{item}</span>
                 <div className="h-1.5 w-1.5 rounded-full bg-white/30" />
@@ -397,20 +357,26 @@ function Academics() {
       </motion.div>
 
       <div className="relative z-10 mt-16 grid gap-8 md:grid-cols-3">
-        {academicCards.map((card, index) => (
-          <motion.div
-            key={card.title}
-            initial={{ y: 50, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="hoverable group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.04]"
-          >
-            <div className="mb-6 text-white opacity-50 transition-opacity group-hover:opacity-100">{card.icon}</div>
-            <h3 className="mb-4 text-3xl font-heading tracking-wide">{card.title}</h3>
-            <p className="font-light leading-relaxed text-muted">{card.desc}</p>
-          </motion.div>
-        ))}
+        {marketingAcademicCards.map((card, index) => {
+          const Icon = card.icon;
+
+          return (
+            <motion.div
+              key={card.title}
+              initial={{ y: 50, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="hoverable group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.04]"
+            >
+              <div className="mb-6 text-white opacity-50 transition-opacity group-hover:opacity-100">
+                <Icon size={32} />
+              </div>
+              <h3 className="mb-4 text-3xl font-heading tracking-wide">{card.title}</h3>
+              <p className="font-light leading-relaxed text-muted">{card.desc}</p>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
@@ -433,7 +399,7 @@ function Gallery() {
       </motion.h2>
 
       <div className="masonry-grid relative z-10">
-        {campusHighlights.map((item, index) => (
+        {marketingCampusHighlights.map((item, index) => (
           <motion.div
             key={item.title}
             initial="hidden"
@@ -484,6 +450,11 @@ function Contact() {
     email: '',
     message: '',
   });
+  const [requestState, setRequestState] = useState<{
+    kind: 'error' | 'info' | 'success';
+    message: string;
+  } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const accessMessage = [
     yantraCtaPrompts.requestAccess,
@@ -493,6 +464,48 @@ function Contact() {
   ]
     .filter(Boolean)
     .join('\n');
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setRequestState({
+      kind: 'info',
+      message: 'Sending your access request...',
+    });
+
+    try {
+      const response = await fetch('/api/access-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      });
+
+      const payload = (await response.json()) as { error?: string; message?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error || 'Yantra could not submit your access request right now.');
+      }
+
+      setForm({
+        name: '',
+        email: '',
+        message: '',
+      });
+      setRequestState({
+        kind: 'success',
+        message: payload.message || 'Your access request has been received. We will reach out soon.',
+      });
+    } catch (error) {
+      setRequestState({
+        kind: 'error',
+        message: error instanceof Error ? error.message : 'Yantra could not submit your access request right now.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <section id="contact" className="relative mx-auto max-w-7xl border-t border-white/10 px-6 py-32 scroll-mt-28">
@@ -510,15 +523,15 @@ function Contact() {
           <div className="space-y-6 font-mono text-sm text-muted">
             <p className="flex items-start gap-4 break-words md:items-center">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-              {accessDetails.primary}
+              {marketingAccessDetails.primary}
             </p>
             <p className="flex items-start gap-4 break-words md:items-center">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" style={{ animationDelay: '0.2s' }} />
-              {accessDetails.audience}
+              {marketingAccessDetails.audience}
             </p>
             <p className="flex items-start gap-4 break-words md:items-center">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" style={{ animationDelay: '0.4s' }} />
-              {accessDetails.status}
+              {marketingAccessDetails.status}
             </p>
           </div>
         </motion.div>
@@ -529,17 +542,17 @@ function Contact() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
           className="flex flex-col gap-8"
-          onSubmit={(event) => {
-            event.preventDefault();
-            openChat({ message: accessMessage });
-          }}
+          onSubmit={handleSubmit}
         >
           <div className="relative">
             <input
               type="text"
               id="name"
+              name="name"
               placeholder=" "
               value={form.name}
+              required
+              autoComplete="name"
               onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
               className="input-field hoverable peer w-full border-b border-border bg-transparent py-3 text-white transition-colors focus:border-accent focus:outline-none"
             />
@@ -554,8 +567,11 @@ function Contact() {
             <input
               type="email"
               id="email"
+              name="email"
               placeholder=" "
               value={form.email}
+              required
+              autoComplete="email"
               onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
               className="input-field hoverable peer w-full border-b border-border bg-transparent py-3 text-white transition-colors focus:border-accent focus:outline-none"
             />
@@ -569,6 +585,7 @@ function Contact() {
           <div className="relative">
             <textarea
               id="message"
+              name="message"
               rows={4}
               placeholder=" "
               value={form.message}
@@ -583,9 +600,38 @@ function Contact() {
             </label>
           </div>
 
-          <button className="hoverable mt-4 flex items-center gap-2 self-start rounded-full bg-white px-8 py-4 text-sm font-bold uppercase tracking-widest text-black transition-transform duration-300 hover:scale-105">
-            Request Access <ArrowRight size={16} />
-          </button>
+          {requestState ? (
+            <div
+              className={`rounded-[1.4rem] border px-4 py-4 text-sm leading-relaxed ${
+                requestState.kind === 'error'
+                  ? 'border-red-300/30 bg-red-400/10 text-red-100'
+                  : requestState.kind === 'success'
+                    ? 'border-white/12 bg-white/[0.05] text-white/82'
+                    : 'border-white/10 bg-black/20 text-white/68'
+              }`}
+              aria-live="polite"
+            >
+              {requestState.message}
+            </div>
+          ) : null}
+
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="hoverable flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-bold uppercase tracking-widest text-black transition-transform duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:bg-white/40"
+            >
+              {isSubmitting ? 'Submitting...' : 'Request Access'} <ArrowRight size={16} />
+            </button>
+
+            <button
+              type="button"
+              className="hoverable rounded-full border border-white/12 bg-white/[0.04] px-8 py-4 text-center font-mono text-[11px] uppercase tracking-[0.22em] text-white transition-colors hover:bg-white/[0.08]"
+              onClick={() => openChat({ message: accessMessage })}
+            >
+              Talk to Yantra
+            </button>
+          </div>
         </motion.form>
       </div>
     </section>

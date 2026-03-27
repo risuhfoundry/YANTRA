@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { createClient as createSupabaseBrowserClient } from '@/src/lib/supabase/client';
+import { usePageTransition } from '@/src/features/motion/ExperienceProvider';
 
 type AuthMode = 'login' | 'signup';
 
@@ -41,7 +42,7 @@ const authContent = {
     kicker: 'Continue your path',
     helper: 'Return to your dashboard',
     chips: ['AI-guided', 'Private dashboard', 'Secure access'],
-    footer: 'SECURE AUTHENTICATION GATEWAY — TERMINAL 01-B',
+    footer: 'SECURE AUTHENTICATION GATEWAY - TERMINAL 01-B',
     ghostCta: 'Back to platform',
   },
   signup: {
@@ -52,7 +53,7 @@ const authContent = {
     kicker: 'Create your Yantra account',
     helper: 'Your roadmap begins here',
     chips: ['AI-guided', 'Personalized roadmap', 'Secure access'],
-    footer: 'PRIVATE ACCOUNT LAYER — PROVISIONING FLOW ACTIVE',
+    footer: 'PRIVATE ACCOUNT LAYER - PROVISIONING FLOW ACTIVE',
     ghostCta: 'Back to platform',
   },
 } satisfies Record<
@@ -130,7 +131,9 @@ function Switcher({ mode }: { mode: AuthMode }) {
       <Link
         href="/login"
         className={`flex-1 rounded-full px-4 py-3 text-center font-mono text-[10px] uppercase tracking-[0.24em] transition-colors ${
-          mode === 'login' ? 'bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]' : 'text-white/38 hover:text-white/70'
+          mode === 'login'
+            ? 'bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
+            : 'text-white/38 hover:text-white/70'
         }`}
       >
         Sign In
@@ -138,7 +141,9 @@ function Switcher({ mode }: { mode: AuthMode }) {
       <Link
         href="/signup"
         className={`flex-1 rounded-full px-4 py-3 text-center font-mono text-[10px] uppercase tracking-[0.24em] transition-colors ${
-          mode === 'signup' ? 'bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]' : 'text-white/38 hover:text-white/70'
+          mode === 'signup'
+            ? 'bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
+            : 'text-white/38 hover:text-white/70'
         }`}
       >
         Create Account
@@ -199,6 +204,7 @@ export default function AuthExperience({
 }) {
   const content = authContent[mode];
   const router = useRouter();
+  const { startPageTransition } = usePageTransition();
   const [fields, setFields] = useState<AuthFields>({
     fullName: '',
     email: '',
@@ -211,6 +217,8 @@ export default function AuthExperience({
   const [errors, setErrors] = useState<Partial<Record<keyof AuthFields, string>>>({});
   const [status, setStatus] = useState<AuthStatus>(initialStatus);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const updateField = <K extends keyof AuthFields>(key: K, value: AuthFields[K]) => {
     setFields((current) => ({
@@ -245,6 +253,30 @@ export default function AuthExperience({
     }
 
     return nextErrors;
+  };
+
+  const validateEmailField = () => {
+    if (!fields.email.trim()) {
+      setErrors((current) => ({ ...current, email: 'Enter your email address first.' }));
+      return false;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
+      setErrors((current) => ({ ...current, email: 'Use a valid email address.' }));
+      return false;
+    }
+
+    setErrors((current) => {
+      if (!current.email) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next.email;
+      return next;
+    });
+
+    return true;
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -284,12 +316,13 @@ export default function AuthExperience({
           throw error;
         }
 
+        startPageTransition();
         router.replace('/dashboard');
         router.refresh();
         return;
       }
 
-      const redirectTo = `${window.location.origin}/auth/confirm?next=/dashboard`;
+      const redirectTo = `${window.location.origin}/auth/confirm?next=/onboarding`;
       const { data, error } = await supabase.auth.signUp({
         email: fields.email.trim(),
         password: fields.password,
@@ -306,7 +339,8 @@ export default function AuthExperience({
       }
 
       if (data.session) {
-        router.replace('/dashboard');
+        startPageTransition();
+        router.replace('/onboarding');
         router.refresh();
         return;
       }
@@ -326,18 +360,89 @@ export default function AuthExperience({
     }
   };
 
-  const handleForgotPassword = () => {
-    setStatus({
-      kind: 'info',
-      message: 'Password recovery is intentionally a UI placeholder for this phase and will be connected in the auth backend pass.',
-    });
+  const handleForgotPassword = async () => {
+    if (!validateEmailField()) {
+      setStatus({
+        kind: 'error',
+        message: 'Enter the email on this account before requesting a reset link.',
+      });
+      return;
+    }
+
+    if (!supabaseConfigured) {
+      setStatus({
+        kind: 'error',
+        message: 'Supabase is not configured yet. Add your Supabase URL and anon key to activate password recovery.',
+      });
+      return;
+    }
+
+    setIsRecovering(true);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const redirectTo = `${window.location.origin}/auth/confirm?next=/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(fields.email.trim(), {
+        redirectTo,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setStatus({
+        kind: 'success',
+        message: 'Password reset email sent. Open the recovery link in your inbox to choose a new password.',
+      });
+    } catch (error) {
+      setStatus({
+        kind: 'error',
+        message: error instanceof Error ? error.message : 'Yantra could not send the password reset email right now.',
+      });
+    } finally {
+      setIsRecovering(false);
+    }
   };
 
-  const handleGooglePreview = () => {
-    setStatus({
-      kind: 'info',
-      message: 'Google sign-in is not wired yet in this pass. Email and password auth is now live through Supabase.',
-    });
+  const handleGoogleContinue = async () => {
+    if (!supabaseConfigured) {
+      setStatus({
+        kind: 'error',
+        message: 'Supabase is not configured yet. Add your Supabase URL and anon key to activate Google sign-in.',
+      });
+      return;
+    }
+
+    setIsGoogleSubmitting(true);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const redirectTo = `${window.location.origin}/auth/confirm?next=/dashboard`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+          queryParams: {
+            prompt: 'select_account',
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setStatus({
+        kind: 'info',
+        message: 'Opening Google sign-in...',
+      });
+    } catch (error) {
+      setStatus({
+        kind: 'error',
+        message: error instanceof Error ? error.message : 'Yantra could not start Google sign-in right now.',
+      });
+      setIsGoogleSubmitting(false);
+    }
   };
 
   return (
@@ -352,7 +457,9 @@ export default function AuthExperience({
 
           <div className="hidden items-center gap-3 md:flex">
             <span className="h-2 w-2 rounded-full bg-white shadow-[0_0_16px_rgba(255,255,255,0.75)] animate-pulse" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/52">AI-Native Learning OS</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/52">
+              AI-Native Learning OS
+            </span>
           </div>
         </div>
       </header>
@@ -419,15 +526,21 @@ export default function AuthExperience({
             <div className="flex flex-wrap gap-5 pt-4">
               <div className="flex items-center gap-2">
                 <Sparkles size={15} className="text-white/45" />
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/44">{content.chips[0]}</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/44">
+                  {content.chips[0]}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Waypoints size={15} className="text-white/45" />
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/44">{content.chips[1]}</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/44">
+                  {content.chips[1]}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <ShieldCheck size={15} className="text-white/45" />
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/44">{content.chips[2]}</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/44">
+                  {content.chips[2]}
+                </span>
               </div>
             </div>
 
@@ -448,7 +561,9 @@ export default function AuthExperience({
               <Switcher mode={mode} />
 
               <div className="mb-6 md:mb-8">
-                <p className="font-display text-[2rem] font-medium tracking-tight text-white md:text-3xl">{content.helper}</p>
+                <p className="font-display text-[2rem] font-medium tracking-tight text-white md:text-3xl">
+                  {content.helper}
+                </p>
                 <p className="mt-2 max-w-md text-[13px] leading-relaxed text-white/50 md:text-sm">
                   {supabaseConfigured
                     ? 'This access layer is now connected to Supabase with session cookies, protected routes, and a synced student profile record.'
@@ -483,7 +598,7 @@ export default function AuthExperience({
                       label="Password"
                       type={showPassword ? 'text' : 'password'}
                       value={fields.password}
-                      placeholder="••••••••"
+                      placeholder="Create a secure password"
                       error={errors.password}
                       onChange={(value) => updateField('password', value)}
                       trailing={
@@ -491,6 +606,7 @@ export default function AuthExperience({
                           type="button"
                           className="hoverable absolute right-0 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40 transition-colors hover:text-white"
                           onClick={() => setShowPassword((current) => !current)}
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
                         >
                           {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>
@@ -500,7 +616,7 @@ export default function AuthExperience({
                       label="Confirm"
                       type={showConfirm ? 'text' : 'password'}
                       value={fields.confirmPassword}
-                      placeholder="••••••••"
+                      placeholder="Repeat your password"
                       error={errors.confirmPassword}
                       onChange={(value) => updateField('confirmPassword', value)}
                       trailing={
@@ -508,6 +624,7 @@ export default function AuthExperience({
                           type="button"
                           className="hoverable absolute right-0 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40 transition-colors hover:text-white"
                           onClick={() => setShowConfirm((current) => !current)}
+                          aria-label={showConfirm ? 'Hide password confirmation' : 'Show password confirmation'}
                         >
                           {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>
@@ -519,7 +636,7 @@ export default function AuthExperience({
                     label="Access Key"
                     type={showPassword ? 'text' : 'password'}
                     value={fields.password}
-                    placeholder="••••••••••••"
+                    placeholder="Enter your password"
                     error={errors.password}
                     onChange={(value) => updateField('password', value)}
                     trailing={
@@ -547,15 +664,18 @@ export default function AuthExperience({
                       >
                         {fields.remember ? <LockKeyhole size={10} className="text-white" /> : null}
                       </button>
-                      <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/48">Remember Path</span>
+                      <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/48">
+                        Remember Path
+                      </span>
                     </label>
 
                     <button
                       type="button"
-                      className="hoverable font-mono text-[9px] uppercase tracking-[0.16em] text-white/40 transition-colors hover:text-white"
+                      className="hoverable font-mono text-[9px] uppercase tracking-[0.16em] text-white/40 transition-colors hover:text-white disabled:cursor-not-allowed disabled:text-white/24"
                       onClick={handleForgotPassword}
+                      disabled={isRecovering}
                     >
-                      Forgot Password?
+                      {isRecovering ? 'Sending Reset...' : 'Forgot Password?'}
                     </button>
                   </div>
                 ) : null}
@@ -563,7 +683,7 @@ export default function AuthExperience({
                 <div className="space-y-5 pt-2">
                   <button
                     type="submit"
-                    disabled={isSubmitting || !supabaseConfigured}
+                    disabled={isSubmitting || isGoogleSubmitting || !supabaseConfigured}
                     className="hoverable flex h-14 w-full items-center justify-center gap-2 rounded-[1.2rem] bg-white font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-black transition-all duration-300 hover:scale-[0.99] disabled:cursor-not-allowed disabled:bg-white/35"
                   >
                     <span>
@@ -577,11 +697,10 @@ export default function AuthExperience({
                   </button>
 
                   <div className="flex items-center justify-between gap-4 text-[10px] uppercase tracking-[0.2em] text-white/34">
-                    <span className="font-mono">{mode === 'login' ? 'Secure session flow' : 'Email verification ready'}</span>
-                    <Link
-                      href="/"
-                      className="hoverable font-mono text-white/54 transition-colors hover:text-white"
-                    >
+                    <span className="font-mono">
+                      {mode === 'login' ? 'Secure session flow' : 'Email verification ready'}
+                    </span>
+                    <Link href="/" className="hoverable font-mono text-white/54 transition-colors hover:text-white">
                       {content.ghostCta}
                     </Link>
                   </div>
@@ -595,11 +714,18 @@ export default function AuthExperience({
 
                 <button
                   type="button"
-                  className="hoverable flex h-14 w-full items-center justify-center gap-3 rounded-[1.2rem] border border-white/12 bg-transparent font-mono text-[11px] uppercase tracking-[0.2em] text-white transition-colors hover:bg-white/[0.05]"
-                  onClick={handleGooglePreview}
+                  disabled={isSubmitting || isGoogleSubmitting || !supabaseConfigured}
+                  className="hoverable flex h-14 w-full items-center justify-center gap-3 rounded-[1.2rem] border border-white/12 bg-transparent font-mono text-[11px] uppercase tracking-[0.2em] text-white transition-colors hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:border-white/8 disabled:text-white/40"
+                  onClick={handleGoogleContinue}
                 >
                   <GoogleIcon />
-                  <span>{mode === 'login' ? 'Authenticate with Google' : 'Continue with Google'}</span>
+                  <span>
+                    {isGoogleSubmitting
+                      ? 'Opening Google...'
+                      : mode === 'login'
+                        ? 'Authenticate with Google'
+                        : 'Continue with Google'}
+                  </span>
                 </button>
               </form>
 
@@ -640,16 +766,25 @@ export default function AuthExperience({
       <footer className="relative z-10 hidden border-t border-white/6 px-8 py-8 md:block">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/32">
-            © 2026 Yantra AI-native OS. All rights reserved.
+            (c) 2026 Yantra AI-native OS. All rights reserved.
           </span>
           <div className="flex items-center gap-8">
-            <Link href="/" className="hoverable font-mono text-[10px] uppercase tracking-[0.2em] text-white/28 transition-colors hover:text-white">
+            <Link
+              href="/"
+              className="hoverable font-mono text-[10px] uppercase tracking-[0.2em] text-white/28 transition-colors hover:text-white"
+            >
               Platform
             </Link>
-            <Link href="/login" className="hoverable font-mono text-[10px] uppercase tracking-[0.2em] text-white/28 transition-colors hover:text-white">
+            <Link
+              href="/login"
+              className="hoverable font-mono text-[10px] uppercase tracking-[0.2em] text-white/28 transition-colors hover:text-white"
+            >
               Log In
             </Link>
-            <Link href="/signup" className="hoverable font-mono text-[10px] uppercase tracking-[0.2em] text-white/28 transition-colors hover:text-white">
+            <Link
+              href="/signup"
+              className="hoverable font-mono text-[10px] uppercase tracking-[0.2em] text-white/28 transition-colors hover:text-white"
+            >
               Create Account
             </Link>
           </div>
