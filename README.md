@@ -25,6 +25,7 @@ The app is no longer just a static marketing-plus-dashboard shell. Authenticatio
 
 - `/dashboard` student dashboard
 - `/dashboard/student-profile` editable student profile workspace
+- `/onboarding` required role selection after signup
 
 ### Auth handlers
 

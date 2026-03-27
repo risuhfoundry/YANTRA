@@ -18,12 +18,32 @@
 @layer base {
   html {
     background-color: var(--color-bg);
+    scroll-padding-top: 7rem;
   }
 
   body {
     background-color: var(--color-bg);
     color: var(--color-text);
+    font-family: var(--font-body);
     overflow-x: hidden;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  summary {
+    outline: none;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  summary:focus-visible {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.92), 0 0 0 4px rgba(255, 255, 255, 0.16);
   }
 
   html[data-yantra-overlay='true'],
@@ -63,6 +83,10 @@ html.lenis body {
 
 .lenis.lenis-stopped {
   overflow: hidden;
+}
+
+html[data-yantra-motion='reduced'] {
+  scroll-behavior: auto;
 }
 
 .input-field:focus ~ .input-label,
@@ -105,8 +129,27 @@ html.lenis body {
   }
 }
 
+@keyframes yantra-loader-sheen {
+  0% {
+    transform: translateX(-140%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(180%);
+    opacity: 0;
+  }
+}
+
 .animate-blob {
   animation: blob 20s infinite alternate ease-in-out;
+}
+
+.animate-yantra-loader-sheen {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), transparent);
+  animation: yantra-loader-sheen 1.15s linear infinite;
 }
 
 .animation-delay-2000 {

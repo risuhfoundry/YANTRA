@@ -1,6 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import {
   defaultStudentProfile,
+  normalizeUserRole,
   sanitizeStudentProfile,
   type StudentProfile,
 } from '@/src/features/dashboard/student-profile-model';
@@ -14,9 +15,14 @@ type ProfileRow = {
   skill_level: StudentProfile['skillLevel'] | null;
   progress: number | null;
   academic_year: string | null;
+  user_role: string | null;
+  onboarding_completed: boolean | null;
+  onboarding_completed_at: string | null;
   created_at?: string | null;
   updated_at?: string | null;
 };
+
+type LegacyProfileRow = Omit<ProfileRow, 'user_role' | 'onboarding_completed' | 'onboarding_completed_at'>;
 
 function deriveFullName(user: User) {
   const metadataName =
@@ -45,6 +51,17 @@ export function buildDefaultStudentProfile(user: User): StudentProfile {
   });
 }
 
+function buildDefaultStudentProfileForUserContext(user: User, profile: StudentProfile) {
+  const defaultProfile = buildDefaultStudentProfile(user);
+
+  return sanitizeStudentProfile({
+    ...defaultProfile,
+    userRole: profile.userRole,
+    onboardingCompleted: profile.onboardingCompleted,
+    onboardingCompletedAt: profile.onboardingCompletedAt,
+  });
+}
+
 function mapProfileRowToStudentProfile(row: ProfileRow | null, user: User) {
   const seededProfile = buildDefaultStudentProfile(user);
 
@@ -58,10 +75,33 @@ function mapProfileRowToStudentProfile(row: ProfileRow | null, user: User) {
     skillLevel: row.skill_level || seededProfile.skillLevel,
     progress: typeof row.progress === 'number' ? row.progress : seededProfile.progress,
     academicYear: row.academic_year || seededProfile.academicYear,
+    userRole: normalizeUserRole(row.user_role),
+    onboardingCompleted: Boolean(row.onboarding_completed),
+    onboardingCompletedAt: row.onboarding_completed_at,
   });
 }
 
 function mapStudentProfileToRow(user: User, profile: StudentProfile): Omit<ProfileRow, 'created_at' | 'updated_at'> {
+  const safeProfile = sanitizeStudentProfile(profile);
+
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    full_name: safeProfile.name,
+    class_designation: safeProfile.classDesignation,
+    skill_level: safeProfile.skillLevel,
+    progress: safeProfile.progress,
+    academic_year: safeProfile.academicYear,
+    user_role: safeProfile.userRole,
+    onboarding_completed: safeProfile.onboardingCompleted,
+    onboarding_completed_at: safeProfile.onboardingCompletedAt,
+  };
+}
+
+function mapStudentProfileToLegacyRow(
+  user: User,
+  profile: StudentProfile,
+): Omit<LegacyProfileRow, 'created_at' | 'updated_at'> {
   const safeProfile = sanitizeStudentProfile(profile);
 
   return {
@@ -81,6 +121,47 @@ function isMissingSessionError(error: unknown) {
   }
 
   return error.name === 'AuthSessionMissingError' || error.message.toLowerCase().includes('auth session missing');
+}
+
+function isSupabaseSchemaError(
+  error: unknown,
+  column: 'user_role' | 'onboarding_completed' | 'onboarding_completed_at',
+) {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const candidate = error as { code?: unknown; message?: unknown };
+
+  return (
+    (candidate.code === 'PGRST204' || candidate.code === '42703') &&
+    typeof candidate.message === 'string' &&
+    (candidate.message.includes(`'${column}' column`) ||
+      candidate.message.includes(`profiles.${column}`) ||
+      candidate.message.includes(column))
+  );
+}
+
+function isMissingOnboardingSchemaError(error: unknown) {
+  return (
+    isSupabaseSchemaError(error, 'user_role') ||
+    isSupabaseSchemaError(error, 'onboarding_completed') ||
+    isSupabaseSchemaError(error, 'onboarding_completed_at')
+  );
+}
+
+async function supportsOnboardingProfileSchema(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { error } = await supabase.from('profiles').select('onboarding_completed').limit(1);
+
+  if (!error) {
+    return true;
+  }
+
+  if (isMissingOnboardingSchemaError(error)) {
+    return false;
+  }
+
+  throw error;
 }
 
 export async function getAuthenticatedUser() {
@@ -110,6 +191,7 @@ export async function getAuthenticatedProfile() {
 
   const supabase = await createClient();
   const defaultProfile = buildDefaultStudentProfile(user);
+  const supportsOnboardingSchema = await supportsOnboardingProfileSchema(supabase);
 
   const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
 
@@ -120,27 +202,31 @@ export async function getAuthenticatedProfile() {
   const existingProfile = (data as ProfileRow | null) ?? null;
 
   if (!existingProfile) {
-    const { data: insertedData, error: insertError } = await supabase
-      .from('profiles')
-      .insert(mapStudentProfileToRow(user, defaultProfile))
-      .select('*')
-      .single();
+    const { data: insertedData, error: insertError } = supportsOnboardingSchema
+      ? await supabase.from('profiles').insert(mapStudentProfileToRow(user, defaultProfile)).select('*').single()
+      : await supabase.from('profiles').insert(mapStudentProfileToLegacyRow(user, defaultProfile)).select('*').single();
 
     if (insertError) {
       throw insertError;
     }
 
+    const insertedProfile = mapProfileRowToStudentProfile(insertedData as ProfileRow, user);
+
     return {
       user,
-      profile: mapProfileRowToStudentProfile(insertedData as ProfileRow, user),
-      defaultProfile,
+      profile: insertedProfile,
+      defaultProfile: buildDefaultStudentProfileForUserContext(user, insertedProfile),
+      supportsOnboardingSchema,
     };
   }
 
+  const mappedProfile = mapProfileRowToStudentProfile(existingProfile, user);
+
   return {
     user,
-    profile: mapProfileRowToStudentProfile(existingProfile, user),
-    defaultProfile,
+    profile: mappedProfile,
+    defaultProfile: buildDefaultStudentProfileForUserContext(user, mappedProfile),
+    supportsOnboardingSchema,
   };
 }
 
@@ -152,19 +238,26 @@ export async function updateAuthenticatedProfile(profile: StudentProfile) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('profiles')
-    .upsert(mapStudentProfileToRow(user, profile), { onConflict: 'id' })
-    .select('*')
-    .single();
+  const supportsOnboardingSchema = await supportsOnboardingProfileSchema(supabase);
+  const { data, error } = supportsOnboardingSchema
+    ? await supabase.from('profiles').upsert(mapStudentProfileToRow(user, profile), { onConflict: 'id' }).select('*').single()
+    : await supabase
+        .from('profiles')
+        .upsert(mapStudentProfileToLegacyRow(user, profile), { onConflict: 'id' })
+        .select('*')
+        .single();
 
   if (error) {
-    throw error;
+      throw error;
   }
 
   return {
     user,
     profile: mapProfileRowToStudentProfile(data as ProfileRow, user),
-    defaultProfile: buildDefaultStudentProfile(user),
+    defaultProfile: buildDefaultStudentProfileForUserContext(
+      user,
+      mapProfileRowToStudentProfile(data as ProfileRow, user),
+    ),
+    supportsOnboardingSchema,
   };
 }

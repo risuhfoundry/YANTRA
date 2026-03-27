@@ -8,46 +8,13 @@ import { AccessRequestForm } from '@/src/features/access/AccessRequestForm';
 import { ChatProvider, useChatWidget } from '@/src/features/chat/ChatWidget';
 import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
 import { yantraCtaPrompts } from '@/src/features/chat/yantra-chat';
-
-const accessDetails = {
-  primary: 'AI-native learning operating system',
-  audience: 'Built for learners, institutions, and hiring partners',
-  status: 'Learner accounts are previewing now, and pilot conversations remain open for partners.',
-};
-
-const tickerItems = [
-  'AI SKILL DIAGNOSIS',
-  'PERSONALIZED ROADMAPS',
-  'CERTIFICATIONS',
-  'JOB MATCHING',
-];
-
-const academicCards = [
-  {
-    icon: <BookOpen size={32} />,
-    title: 'AI TUTORING',
-    desc: 'Yantra adapts to each learner in real time with guided lessons, feedback loops, and contextual support that keeps momentum high.',
-  },
-  {
-    icon: <Globe size={32} />,
-    title: 'ADAPTIVE ROADMAPS',
-    desc: 'The platform analyzes skill level, goal, and pace to generate a focused path instead of sending users through generic course clutter.',
-  },
-  {
-    icon: <Palette size={32} />,
-    title: 'PROOF & PLACEMENT',
-    desc: 'Projects, certifications, and employer-aligned signals stay connected so learning translates into visible progress and job readiness.',
-  },
-];
-
-const campusHighlights = [
-  { title: 'Students', gradient: 'from-white/[0.16] via-white/[0.05] to-transparent', height: 'h-64' },
-  { title: 'Career Switchers', gradient: 'from-white/[0.14] via-white/[0.04] to-transparent', height: 'h-96' },
-  { title: 'Institutions', gradient: 'from-white/[0.12] via-white/[0.03] to-transparent', height: 'h-80' },
-  { title: 'Hiring Partners', gradient: 'from-white/[0.18] via-white/[0.05] to-transparent', height: 'h-96' },
-  { title: 'Certification Paths', gradient: 'from-white/[0.14] via-white/[0.04] to-transparent', height: 'h-72' },
-  { title: 'Job Matching', gradient: 'from-white/[0.1] via-white/[0.03] to-transparent', height: 'h-64' },
-];
+import {
+  marketingAcademicCards,
+  marketingAccessDetails,
+  marketingCampusHighlights,
+  marketingNavLinks,
+  marketingTickerItems,
+} from './marketing-content';
 
 function FluidBackground() {
   return (
@@ -93,13 +60,6 @@ function Nav() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const links = [
-    { label: 'Platform', href: '#about' },
-    { label: 'Capabilities', href: '#academics' },
-    { label: 'Use Cases', href: '#campus-life' },
-    { label: 'Access', href: '#contact' },
-  ];
-
   return (
     <>
       <motion.nav
@@ -116,7 +76,7 @@ function Nav() {
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
-            {links.map((link) => (
+            {marketingNavLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
@@ -165,7 +125,7 @@ function Nav() {
           </div>
 
           <div className="flex flex-1 flex-col items-center justify-center gap-6 py-10">
-            {links.map((link, index) => (
+            {marketingNavLinks.map((link, index) => (
               <motion.a
                 key={link.label}
                 href={link.href}
@@ -183,7 +143,7 @@ function Nav() {
               className="mt-8 flex w-full max-w-sm flex-col gap-4"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: links.length * 0.1 }}
+              transition={{ delay: marketingNavLinks.length * 0.1 }}
             >
               <Link
                 href="/signup"
@@ -212,7 +172,7 @@ function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          AI-native learning OS • Personalized paths
+          AI-native learning OS - Personalized paths
         </motion.div>
 
         <h1 className="flex flex-wrap justify-center text-[5.5rem] leading-none font-heading tracking-normal sm:text-8xl md:text-[12rem]">
@@ -286,7 +246,7 @@ function Ticker() {
       >
         {[...Array(2)].map((_, index) => (
           <div key={index} className="flex items-center gap-8">
-            {tickerItems.map((item) => (
+            {marketingTickerItems.map((item) => (
               <div key={`${index}-${item}`} className="flex items-center gap-8">
                 <span>{item}</span>
                 <div className="h-1.5 w-1.5 rounded-full bg-white/30" />
@@ -398,20 +358,26 @@ function Academics() {
       </motion.div>
 
       <div className="relative z-10 mt-16 grid gap-8 md:grid-cols-3">
-        {academicCards.map((card, index) => (
-          <motion.div
-            key={card.title}
-            initial={{ y: 50, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="hoverable group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.04]"
-          >
-            <div className="mb-6 text-white opacity-50 transition-opacity group-hover:opacity-100">{card.icon}</div>
-            <h3 className="mb-4 text-3xl font-heading tracking-wide">{card.title}</h3>
-            <p className="font-light leading-relaxed text-muted">{card.desc}</p>
-          </motion.div>
-        ))}
+        {marketingAcademicCards.map((card, index) => {
+          const Icon = card.icon;
+
+          return (
+            <motion.div
+              key={card.title}
+              initial={{ y: 50, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="hoverable group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.04]"
+            >
+              <div className="mb-6 text-white opacity-50 transition-opacity group-hover:opacity-100">
+                <Icon size={32} />
+              </div>
+              <h3 className="mb-4 text-3xl font-heading tracking-wide">{card.title}</h3>
+              <p className="font-light leading-relaxed text-muted">{card.desc}</p>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
@@ -434,7 +400,7 @@ function Gallery() {
       </motion.h2>
 
       <div className="masonry-grid relative z-10">
-        {campusHighlights.map((item, index) => (
+        {marketingCampusHighlights.map((item, index) => (
           <motion.div
             key={item.title}
             initial="hidden"
@@ -497,15 +463,15 @@ function Contact() {
           <div className="space-y-6 font-mono text-sm text-muted">
             <p className="flex items-start gap-4 break-words md:items-center">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-              {accessDetails.primary}
+              {marketingAccessDetails.primary}
             </p>
             <p className="flex items-start gap-4 break-words md:items-center">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" style={{ animationDelay: '0.2s' }} />
-              {accessDetails.audience}
+              {marketingAccessDetails.audience}
             </p>
             <p className="flex items-start gap-4 break-words md:items-center">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" style={{ animationDelay: '0.4s' }} />
-              {accessDetails.status}
+              {marketingAccessDetails.status}
             </p>
           </div>
 

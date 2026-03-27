@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation';
 import AuthExperience from '@/src/features/auth/AuthExperience';
 import { hasSupabaseEnv } from '@/src/lib/supabase/env';
-import { getAuthenticatedUser } from '@/src/lib/supabase/profiles';
+import { redirectAuthenticatedUserToApp } from '@/src/lib/supabase/route-guards';
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -19,11 +18,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const supabaseConfigured = hasSupabaseEnv();
 
   if (supabaseConfigured) {
-    const user = await getAuthenticatedUser();
-
-    if (user) {
-      redirect('/dashboard');
-    }
+    await redirectAuthenticatedUserToApp();
   }
 
   const message = readSearchParam(params?.message);

@@ -9,6 +9,12 @@ Yantra uses Supabase for:
 - persisted public access requests in `public.access_requests`
 - authenticated chat continuity in `public.chat_histories`
 
+- user sign up
+- user sign in
+- auth session cookies
+- protected dashboard routes
+- persisted student profile records
+- onboarding role selection before dashboard access
 ## Required Environment Variables
 
 Add these to `.env.local`:
@@ -84,6 +90,12 @@ Inside Supabase Auth settings:
 - local: `http://localhost:3000`
 - production: your Vercel or custom domain
 
+- `/signup` creates a Supabase account
+- `/onboarding` collects the user's Yantra role before the main dashboard opens
+- `/login` signs the user in
+- `/dashboard` redirects to `/login` if no valid session exists
+- `/dashboard` redirects to `/onboarding` until the signed-in user has completed role selection
+- `/dashboard/student-profile` reads and saves the current learner profile from Supabase instead of local browser storage
 ### Redirect URLs
 
 - `http://localhost:3000/auth/confirm`
@@ -158,16 +170,27 @@ The row is sanitized before insert and update.
 5. Start the app with `npm run dev`.
 6. Open `/signup` and create an account.
 7. Confirm the email if email confirmation is enabled.
-8. Open `/dashboard`.
-9. Open `/dashboard/student-profile`, edit the record, and save it.
-10. Reload and confirm the updated profile persisted.
-11. Open `/login`, request a password reset, and verify the recovery page lets you set a new password.
-12. Open the chat as an authenticated learner, send a message, reload, and confirm the conversation resumes.
+8. Complete the `/onboarding` role selection screen if the account is new.
+9. Open `/dashboard`.
+10. Open `/dashboard/student-profile`, edit the record, and save it.
+11. Reload and confirm the updated profile persisted.
+12. Open `/login`, request a password reset, and verify the recovery page lets you set a new password.
+13. Open the chat as an authenticated learner, send a message, reload, and confirm the conversation resumes.
 
 ## Known Gaps
 
 - Google sign-in is not wired yet
 - dashboard metrics and most learning-state models are still demo content
+
+## Onboarding Columns
+
+The `profiles` table now also stores:
+
+- `user_role`
+- `onboarding_completed`
+- `onboarding_completed_at`
+
+Re-run `supabase/schema.sql` against an existing project to add these columns if your table was created before onboarding was introduced.
 
 ## Production Checklist
 

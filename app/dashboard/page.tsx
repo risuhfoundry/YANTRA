@@ -1,17 +1,18 @@
-import { redirect } from 'next/navigation';
 import StudentDashboard from '@/src/features/dashboard/StudentDashboard';
-import { hasSupabaseEnv } from '@/src/lib/supabase/env';
+import { requireAuthenticatedProfile } from '@/src/lib/supabase/route-guards';
 import { getAuthenticatedDashboardData } from '@/src/lib/supabase/dashboard';
 
 export default async function DashboardPage() {
-  if (!hasSupabaseEnv()) {
-    redirect('/login?message=Configure%20Supabase%20first.&kind=error');
-  }
+  await requireAuthenticatedProfile({
+    unauthenticatedRedirect: '/login?message=Log%20in%20to%20open%20your%20dashboard.&kind=info',
+    requireOnboarding: true,
+    onboardingRedirect: '/onboarding?message=Choose%20your%20Yantra%20role%20before%20entering%20the%20dashboard.&kind=info',
+  });
 
   const result = await getAuthenticatedDashboardData();
 
   if (!result) {
-    redirect('/login?message=Log%20in%20to%20open%20your%20dashboard.&kind=info');
+    return null;
   }
 
   return <StudentDashboard data={result} />;

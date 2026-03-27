@@ -117,13 +117,19 @@ function describeResetStatus(status: ResetStatus): ResetStatusPresentation | nul
   };
 }
 
-export default function ResetPasswordExperience({ supabaseConfigured }: { supabaseConfigured: boolean }) {
+export default function ResetPasswordExperience({
+  supabaseConfigured,
+  initialStatus = null,
+}: {
+  supabaseConfigured: boolean;
+  initialStatus?: ResetStatus;
+}) {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [status, setStatus] = useState<ResetStatus>(null);
+  const [status, setStatus] = useState<ResetStatus>(initialStatus);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [hasRecoverySession, setHasRecoverySession] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
