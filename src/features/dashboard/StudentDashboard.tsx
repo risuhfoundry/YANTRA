@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { motion, useInView } from 'motion/react';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { BrandLogo } from '@/src/components/BrandLogo';
 import { ChatProvider, useChatWidget } from '@/src/features/chat/ChatWidget';
 import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
 import {
@@ -493,7 +494,7 @@ function DashboardNav() {
         <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-5 md:px-8">
           <div className="flex items-center gap-8 md:gap-10">
             <Link href="/" className="font-heading text-3xl tracking-wider text-white hoverable">
-              YANTRA<span className="text-white/42">.</span>
+              <BrandLogo markClassName="h-10 w-10" labelClassName="text-3xl tracking-wider" />
             </Link>
 
             <div className="hidden items-center gap-7 md:flex">
@@ -1268,7 +1269,10 @@ function DashboardFooter() {
     <footer className="border-t border-white/6 px-5 py-10 md:px-8 md:py-12">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
-          <span className="font-heading text-2xl tracking-wider text-white/20">YANTRA</span>
+          <BrandLogo
+            markClassName="h-8 w-8 opacity-55"
+            labelClassName="text-2xl tracking-wider text-white/20"
+          />
           <div className="flex gap-5 font-mono text-[10px] uppercase tracking-[0.22em] text-white/28">
             <Link href="/privacy" className="transition-colors hover:text-white hoverable">
               Privacy

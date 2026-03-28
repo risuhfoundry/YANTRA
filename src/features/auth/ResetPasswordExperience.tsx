@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Orbit, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { BrandLogo } from '@/src/components/BrandLogo';
 import { startRouteTransition } from '@/src/features/motion/ExperienceProvider';
 import { createClient as createSupabaseBrowserClient, createTransientClient } from '@/src/lib/supabase/client';
 
@@ -289,7 +290,7 @@ export default function ResetPasswordExperience({
       <header className="fixed left-0 top-0 z-40 w-full px-6 py-6 md:px-8">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <Link href="/" className="font-heading text-3xl tracking-wider text-white hoverable">
-            YANTRA<span className="text-white/45">.</span>
+            <BrandLogo priority markClassName="h-10 w-10" labelClassName="text-3xl tracking-wider" />
           </Link>
 
           <Link

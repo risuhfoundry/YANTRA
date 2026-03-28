@@ -6,6 +6,7 @@ import { motion, animate, useInView } from 'motion/react';
 import { ArrowRight, BookOpen, Globe, Menu, Palette, X } from 'lucide-react';
 import { AccessRequestForm } from '@/src/features/access/AccessRequestForm';
 import { ChatProvider, useChatWidget } from '@/src/features/chat/ChatWidget';
+import { BrandLogo } from '@/src/components/BrandLogo';
 import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
 import { yantraCtaPrompts } from '@/src/features/chat/yantra-chat';
 import {
@@ -72,7 +73,7 @@ function Nav() {
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
           <Link href="/" className="font-heading text-3xl tracking-widest hoverable">
-            YANTRA<span className="text-white/50">.</span>
+            <BrandLogo priority markClassName="h-11 w-11" labelClassName="text-3xl tracking-widest" />
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
@@ -533,9 +534,7 @@ function Footer() {
   return (
     <footer className="relative mt-32 overflow-hidden border-t border-white/10 px-6 py-12">
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
-        <div className="font-heading text-3xl tracking-widest">
-          YANTRA<span className="text-white/50">.</span>
-        </div>
+        <BrandLogo markClassName="h-10 w-10" labelClassName="text-3xl tracking-widest" />
         <div className="flex flex-wrap items-center justify-center gap-6 font-mono text-xs uppercase tracking-widest text-muted">
           <a href="#about" data-no-route-loader="true" className="hoverable transition-colors hover:text-white">
             Platform

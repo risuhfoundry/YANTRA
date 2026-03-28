@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BrandLogo } from '@/src/components/BrandLogo';
 
 type InfoSection = {
   title: string;
@@ -30,7 +31,7 @@ export default function InfoPageShell({
       <header className="relative z-10 border-b border-white/8 px-6 py-6 md:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link href="/" className="font-heading text-3xl tracking-wider text-white hoverable">
-            YANTRA<span className="text-white/45">.</span>
+            <BrandLogo markClassName="h-10 w-10" labelClassName="text-3xl tracking-wider" />
           </Link>
 
           <div className="flex flex-wrap items-center gap-3">

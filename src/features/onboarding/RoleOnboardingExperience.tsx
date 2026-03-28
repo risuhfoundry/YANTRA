@@ -30,6 +30,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { BrandLogo } from '@/src/components/BrandLogo';
 import {
   deriveClassDesignationFromOnboarding,
   onboardingAgeRangeOptions,
@@ -470,7 +471,11 @@ export default function RoleOnboardingExperience({
               <Menu size={15} />
             </span>
             <Link href="/" className="font-heading text-2xl tracking-wider text-white lg:text-3xl">
-              YANTRA
+              <BrandLogo
+                priority
+                markClassName="h-8 w-8 lg:h-10 lg:w-10"
+                labelClassName="text-2xl tracking-wider lg:text-3xl"
+              />
             </Link>
           </div>
           <div className="flex items-center gap-4">
