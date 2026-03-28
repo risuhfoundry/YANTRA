@@ -84,7 +84,7 @@ function ChatPanel({
         {isOpen && (
           <motion.div
             data-lenis-prevent
-            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-md md:px-8"
+            className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-6 backdrop-blur-md md:items-center md:px-8 md:py-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -92,14 +92,14 @@ function ChatPanel({
             onClick={onClose}
           >
             <motion.div
-              className="relative grid h-[min(86vh,48rem)] w-full max-w-5xl overflow-hidden rounded-[32px] border border-white/10 bg-black/92 shadow-[0_40px_120px_rgba(0,0,0,0.65)] backdrop-blur-2xl md:grid-cols-[18rem_minmax(0,1fr)]"
+              className="relative grid h-[min(100dvh-1rem,48rem)] w-full max-w-5xl overflow-hidden rounded-[28px] border border-white/10 bg-black/92 shadow-[0_40px_120px_rgba(0,0,0,0.65)] backdrop-blur-2xl md:h-[min(86vh,48rem)] md:rounded-[32px] md:grid-cols-[18rem_minmax(0,1fr)]"
               initial={{ opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 18, scale: 0.98 }}
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="relative flex flex-col border-b border-white/10 bg-white/[0.03] p-5 md:border-b-0 md:border-r md:p-6">
+              <div className="relative flex flex-col border-b border-white/10 bg-white/[0.03] p-4 sm:p-5 md:border-b-0 md:border-r md:p-6">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white">
                     <Sparkles size={17} />
@@ -139,7 +139,7 @@ function ChatPanel({
 
                 <button
                   type="button"
-                  className="absolute right-4 top-4 rounded-full border border-white/10 p-2 text-white/60 transition-colors hover:border-white/20 hover:text-white hoverable md:right-5 md:top-5"
+                  className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white/60 transition-colors hover:border-white/20 hover:text-white hoverable md:right-5 md:top-5"
                   onClick={onClose}
                   aria-label="Close chat"
                 >
@@ -148,7 +148,7 @@ function ChatPanel({
               </div>
 
               <div className="flex min-h-0 flex-col">
-                <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 md:px-6">
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-5 md:px-6">
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/35">Conversation</div>
                     <div className="mt-1 text-sm text-white/75">Learn with Yantra in a larger focused space.</div>
@@ -157,9 +157,12 @@ function ChatPanel({
                   <div className="hidden font-mono text-[10px] uppercase tracking-[0.24em] text-white/35 md:block">
                     Press Esc to close
                   </div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/35 md:hidden">
+                    Tap outside to close
+                  </div>
                 </div>
 
-                <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-5">
+                <div data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5 md:px-6 md:py-5">
                   <div className="space-y-4">
                     {messages.map((message, index) => (
                       <div
@@ -217,7 +220,7 @@ function ChatPanel({
                 </div>
 
                 <form
-                  className="border-t border-white/10 p-4 md:p-5"
+                  className="border-t border-white/10 p-4 sm:p-5 md:p-5"
                   onSubmit={(event) => {
                     event.preventDefault();
                     onSend(input);
@@ -237,7 +240,7 @@ function ChatPanel({
                     <button
                       type="submit"
                       disabled={isSending || input.trim().length === 0}
-                      className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black transition-all duration-300 disabled:cursor-not-allowed disabled:bg-white/20 disabled:text-white/35 hoverable md:h-12 md:w-12"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-black transition-all duration-300 disabled:cursor-not-allowed disabled:bg-white/20 disabled:text-white/35 hoverable md:h-12 md:w-12"
                       aria-label="Send message"
                     >
                       <SendHorizontal size={16} />
@@ -257,7 +260,7 @@ function ChatPanel({
       {!isOpen && (
         <motion.button
           type="button"
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-4 z-[70] flex items-center gap-3 rounded-full border border-white/10 bg-black/80 px-5 py-3 text-white shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl hoverable md:bottom-6 md:right-6"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-4 z-[70] flex min-h-11 items-center gap-3 rounded-full border border-white/10 bg-black/80 px-4 py-3 text-white shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl hoverable sm:px-5 md:bottom-6 md:right-6"
           onClick={onOpen}
           whileHover={{ y: -2, scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
@@ -267,7 +270,8 @@ function ChatPanel({
             <span className="absolute h-3 w-3 rounded-full bg-white/35 animate-ping" />
             <span className="relative h-2.5 w-2.5 rounded-full bg-white" />
           </span>
-          <span className="font-mono text-[11px] uppercase tracking-[0.24em]">Chat With Yantra</span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.24em] sm:hidden">Chat</span>
+          <span className="hidden font-mono text-[11px] uppercase tracking-[0.24em] sm:inline">Chat With Yantra</span>
           <MessageSquare size={15} />
         </motion.button>
       )}

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -446,7 +447,7 @@ function SectionShell({
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="pointer-events-none absolute -left-1 top-[-4.5rem] select-none font-display text-[7rem] leading-none text-white/[0.028] md:top-[-6.5rem] md:text-[11rem]">
+      <div className="pointer-events-none absolute -left-1 top-[-4rem] hidden select-none font-display text-[5rem] leading-none text-white/[0.028] sm:block lg:top-[-5rem] lg:text-[8rem] xl:top-[-6.5rem] xl:text-[11rem]">
         {number}
       </div>
 
@@ -490,7 +491,7 @@ function DashboardNav() {
         animate={{ y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-5 md:px-8">
+        <div className="mx-auto flex h-20 max-w-[1520px] items-center justify-between px-5 md:px-8 xl:px-10">
           <div className="flex items-center gap-8 md:gap-10">
             <Link href="/" className="font-heading text-3xl tracking-wider text-white hoverable">
               YANTRA<span className="text-white/42">.</span>
@@ -642,9 +643,9 @@ function HeroSection({
   const resolvedView = view;
 
   return (
-    <section className="relative grid gap-10 pt-28 md:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)] md:items-end md:gap-14 md:pt-36">
+    <section className="relative grid gap-8 pt-24 sm:gap-10 sm:pt-28 lg:grid-cols-[minmax(0,1.04fr)_minmax(21rem,0.96fr)] lg:items-end lg:gap-10 lg:pt-32 xl:grid-cols-[minmax(0,1.16fr)_minmax(24rem,0.84fr)] xl:gap-14 xl:pt-36 2xl:gap-16">
       <motion.div
-        className="space-y-8"
+        className="space-y-6 sm:space-y-8"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -655,13 +656,13 @@ function HeroSection({
         </div>
 
         <div className="space-y-5">
-          <h1 className="max-w-4xl font-display text-[3.8rem] font-semibold leading-[0.9] tracking-tight text-white sm:text-[5rem] md:text-[7rem]">
+          <h1 className="max-w-4xl font-display text-[clamp(3.1rem,14vw,7rem)] font-semibold leading-[0.9] tracking-tight text-white sm:leading-[0.88]">
             {resolvedView.hero.headlineLead}
             <br />
             {firstName}.
           </h1>
 
-          <p className="max-w-2xl text-lg font-light leading-relaxed text-white/56 md:text-[1.35rem]">
+          <p className="max-w-2xl text-base font-light leading-relaxed text-white/56 sm:text-lg xl:text-[1.35rem]">
             {resolvedView.hero.body}
           </p>
         </div>
@@ -669,7 +670,7 @@ function HeroSection({
         <div className="flex flex-col gap-4 sm:flex-row">
           <button
             type="button"
-            className="rounded-full bg-white px-8 py-4 text-sm font-medium uppercase tracking-[0.22em] text-black transition-transform duration-300 hover:scale-[0.985] hoverable"
+            className="w-full rounded-full bg-white px-8 py-4 text-sm font-medium uppercase tracking-[0.22em] text-black transition-transform duration-300 hover:scale-[0.985] hoverable sm:w-auto"
             onClick={() => openChat({ message: resolvedView.hero.primaryCtaPrompt })}
           >
             {resolvedView.hero.primaryCtaLabel}
@@ -678,7 +679,7 @@ function HeroSection({
           <a
             href="#rooms"
             data-no-route-loader="true"
-            className="rounded-full border border-white/14 bg-white/[0.04] px-8 py-4 text-center font-mono text-[11px] uppercase tracking-[0.24em] text-white transition-colors hover:bg-white/[0.08] hoverable"
+            className="w-full rounded-full border border-white/14 bg-white/[0.04] px-8 py-4 text-center font-mono text-[11px] uppercase tracking-[0.24em] text-white transition-colors hover:bg-white/[0.08] hoverable sm:w-auto"
           >
             {resolvedView.hero.secondaryCtaLabel}
           </a>
@@ -702,7 +703,7 @@ function HeroSection({
 
       <motion.div
         ref={statRef}
-        className="relative overflow-hidden rounded-[2.2rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur-[28px] md:p-7"
+        className="relative overflow-hidden rounded-[2.2rem] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-[28px] sm:p-6 xl:p-7"
         initial={{ opacity: 0, y: 28 }}
         animate={statInView ? { opacity: 1, y: 0 } : undefined}
         transition={{ duration: 0.85, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
@@ -713,15 +714,15 @@ function HeroSection({
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/38">Current Path</div>
-              <div className="mt-3 font-display text-3xl font-medium text-white md:text-[2.5rem]">{path.pathTitle}</div>
+              <div className="mt-3 font-display text-2xl font-medium text-white sm:text-3xl xl:text-[2.5rem]">{path.pathTitle}</div>
               <div className="mt-2 text-sm leading-relaxed text-white/52">{path.pathDescription}</div>
             </div>
-            <div className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-white/54">
+            <div className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-white/54">
               {path.pathStatusLabel}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-[1.6rem] bg-black/28 p-5">
               <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">Path Progress</div>
               <div className="mt-2 font-display text-5xl font-medium text-white">{progress}%</div>
@@ -736,7 +737,7 @@ function HeroSection({
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.24em] text-white/34">
+            <div className="flex flex-col gap-2 font-mono text-[10px] uppercase tracking-[0.24em] text-white/34 sm:flex-row sm:items-center sm:justify-between">
               <span>Current Focus</span>
               <span>{resolvedView.hero.focusLabel}</span>
             </div>
@@ -756,9 +757,9 @@ function HeroSection({
               <CirclePlay size={16} className="text-white/46" />
             </div>
 
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <div className="font-display text-2xl font-medium text-white">{resolvedView.hero.nextActionTitle}</div>
+                <div className="font-display text-xl font-medium text-white sm:text-2xl">{resolvedView.hero.nextActionTitle}</div>
                 <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/54">
                   {resolvedView.hero.nextActionDescription}
                 </p>
@@ -915,11 +916,13 @@ function OverviewSection({ view }: { view: DashboardViewModel }) {
             </div>
 
             <div className="flex items-center gap-4 rounded-[1.25rem] border border-white/8 bg-white/[0.05] p-4">
-              <div className="h-9 w-9 overflow-hidden rounded-full border border-white/20">
-                <img
-                  className="h-full w-full object-cover"
+              <div className="relative h-9 w-9 overflow-hidden rounded-full border border-white/20">
+                <Image
+                  className="object-cover"
                   src={path.nextSessionInstructorImageUrl}
                   alt={`${path.nextSessionInstructorName} portrait`}
+                  fill
+                  sizes="36px"
                 />
               </div>
 
@@ -1266,7 +1269,7 @@ function YantraAiSection({ view }: { view: DashboardViewModel }) {
 function DashboardFooter() {
   return (
     <footer className="border-t border-white/6 px-5 py-10 md:px-8 md:py-12">
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div className="mx-auto flex max-w-[1520px] flex-col gap-6 md:flex-row md:items-center md:justify-between xl:px-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
           <span className="font-heading text-2xl tracking-wider text-white/20">YANTRA</span>
           <div className="flex gap-5 font-mono text-[10px] uppercase tracking-[0.22em] text-white/28">
@@ -1299,7 +1302,7 @@ function DashboardExperience() {
       <YantraAmbientBackground />
       <DashboardNav />
 
-      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-24 px-5 pb-20 md:gap-32 md:px-8 md:pb-24">
+      <main className="mx-auto flex w-full max-w-[1520px] flex-col gap-24 px-5 pb-20 md:gap-32 md:px-8 md:pb-24 xl:px-10">
         <HeroSection firstName={profile.firstName || 'Learner'} profile={profile} view={view} />
         <OverviewSection view={view} />
         <SkillsSection />

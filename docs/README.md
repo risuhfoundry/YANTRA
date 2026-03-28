@@ -41,6 +41,8 @@ Use it to understand what is actually implemented now, what is still placeholder
 
 - `handoff/CURRENT_STATE.md`
   Fast practical handoff for the next engineer picking up the repo.
+- `handoff/FRONTEND_DEV_BRIEF.md`
+  Detailed product, structure, progress, and task brief for a frontend-heavy contributor.
 
 ### Reference
 

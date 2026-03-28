@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -147,9 +148,9 @@ function ActivitySection() {
                   {facultyAvatars.map((avatar) => (
                     <div
                       key={avatar.src}
-                      className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-black/70 bg-white/10"
+                      className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-black/70 bg-white/10"
                     >
-                      <img className="h-full w-full object-cover" src={avatar.src} alt={avatar.alt} />
+                      <Image className="object-cover" src={avatar.src} alt={avatar.alt} fill sizes="32px" />
                     </div>
                   ))}
                   <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-black/70 bg-white/[0.08] text-[10px] font-semibold text-white/44">
@@ -546,7 +547,7 @@ export default function StudentProfilePage({
         </PanelShell>
       )}
 
-      <aside className="fixed left-0 top-0 z-30 hidden h-full w-64 flex-col border-r border-white/8 bg-black/62 px-4 pb-8 pt-10 backdrop-blur-2xl lg:flex">
+      <aside className="fixed left-0 top-0 z-30 hidden h-full w-64 flex-col border-r border-white/8 bg-black/62 px-4 pb-8 pt-10 backdrop-blur-2xl xl:flex">
         <div className="mb-12 flex flex-col gap-2 px-2">
           <div className="font-display text-xl font-bold text-white">YANTRA</div>
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">Institutional Portal</div>
@@ -575,8 +576,8 @@ export default function StudentProfilePage({
         </div>
       </aside>
 
-      <main className="relative z-10 min-h-screen px-4 pb-14 pt-24 sm:pb-16 md:px-8 md:pt-28 lg:pl-72 lg:pr-10 lg:pt-10">
-        <div className="mx-auto max-w-6xl">
+      <main className="relative z-10 min-h-screen px-4 pb-14 pt-24 sm:pb-16 md:px-8 md:pt-28 xl:pl-72 xl:pr-10 xl:pt-10">
+        <div className="mx-auto max-w-[88rem]">
           {statusMessage ? (
             <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/72 shadow-[0_16px_36px_rgba(0,0,0,0.16)] sm:rounded-full sm:tracking-[0.18em]">
               {statusMessage}
@@ -652,12 +653,12 @@ export default function StudentProfilePage({
             </div>
           </section>
 
-          <div className="mb-8 hidden gap-3 overflow-x-auto pb-2 sm:flex lg:hidden">
+          <div className="mb-8 hidden flex-wrap gap-3 pb-2 md:flex xl:hidden">
             {sideNavItems.map((item) => (
               <button
                 key={item.label}
                 type="button"
-                className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors cursor-pointer ${
+                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors cursor-pointer ${
                   item.action && activeSection === item.action
                     ? 'border-white/12 bg-white/[0.09] text-white'
                     : 'border-white/8 bg-white/[0.04] text-white/58 hover:bg-white/[0.08] hover:text-white/80'
