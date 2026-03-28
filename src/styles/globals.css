@@ -37,13 +37,29 @@
     outline: none;
   }
 
+  input,
+  textarea,
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0 solid transparent;
+    box-shadow: none;
+  }
+
   a:focus-visible,
   button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible,
   summary:focus-visible {
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.92), 0 0 0 4px rgba(255, 255, 255, 0.16);
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   html[data-yantra-overlay='true'],

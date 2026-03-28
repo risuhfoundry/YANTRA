@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {
   Bell,
+  BookOpen,
   ChevronRight,
   Grid2x2,
   Settings2,
@@ -619,6 +620,13 @@ export default function StudentProfilePage({
                 >
                   <Grid2x2 size={16} />
                   Back to Dashboard
+                </Link>
+                <Link
+                  href="/docs/student-profile"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.16em] text-white/70 transition-colors hover:bg-white/[0.08] cursor-pointer"
+                >
+                  <BookOpen size={14} />
+                  Docs
                 </Link>
                 <button
                   type="button"

@@ -90,13 +90,14 @@ npm run build
 
 1. Start the app with `npm run dev`.
 2. Open `/signup` and create an account.
-3. If email confirmation is enabled, follow the email link back to `/auth/confirm`.
-4. Enable the Google provider in Supabase Auth and test Google sign-in from `/login` or `/signup`.
-5. Open `/dashboard` and confirm the route is accessible after sign-in.
-6. Open `/dashboard/student-profile`, edit the record, and save it.
-7. Reload the page to confirm the profile data persisted.
-8. Open the chat widget and send a prompt.
-9. Submit the landing-page access form and confirm the success state appears.
+3. If email confirmation is enabled, follow the email link back to `/auth/confirm` and confirm the new account lands on `/onboarding`.
+4. Complete onboarding and confirm it forwards to `/dashboard`.
+5. Sign out, log back in from `/login`, and confirm the same account goes straight to `/dashboard`.
+6. Enable the Google provider in Supabase Auth and test Google sign-in from `/login` or `/signup`.
+7. Open `/dashboard/student-profile`, edit the record, and save it.
+8. Reload the page to confirm the profile data persisted.
+9. Open the chat widget and send a prompt.
+10. Submit the landing-page access form and confirm the success state appears.
 
 ## Deployment
 
@@ -126,10 +127,10 @@ Configure these in Supabase Auth settings:
   - local: `http://localhost:3000`
   - production: your deployed domain
 - Redirect URLs:
-  - `http://localhost:3000/auth/confirm`
-  - `http://localhost:3000/auth/reset-password`
-  - `https://YOUR-PRODUCTION-DOMAIN/auth/confirm`
-  - `https://YOUR-PRODUCTION-DOMAIN/auth/reset-password`
+  - `http://localhost:3000/auth/confirm**`
+  - `http://localhost:3000/auth/reset-password**`
+  - `https://YOUR-PRODUCTION-DOMAIN/auth/confirm**`
+  - `https://YOUR-PRODUCTION-DOMAIN/auth/reset-password**`
 
 ## Google OAuth Provider Setup
 
@@ -144,7 +145,7 @@ In Google Cloud:
 - create a Web application OAuth client
 - add the Supabase Google callback URL shown inside the Supabase Google provider screen as an authorized redirect URI
 
-Yantra routes the Google sign-in back through `/auth/confirm`, which exchanges the Supabase OAuth code for the session cookie and then redirects to `/dashboard`.
+Yantra routes auth confirmations back through `/auth/confirm`, which exchanges the Supabase code for the session cookie and then redirects by flow: new-account signup goes to `/onboarding`, while login and returning auth go to `/dashboard`.
 
 ## Deployment Reality
 

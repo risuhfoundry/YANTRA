@@ -52,6 +52,10 @@ type RoleOnboardingExperienceProps = {
 };
 
 type OnboardingRole = (typeof onboardingRoleOptions)[number]['value'];
+type SummaryItem = {
+  label: string;
+  value: string;
+};
 
 const stepCopy = [
   {
@@ -79,6 +83,8 @@ const stepCopy = [
     helper: 'Choose the rhythm that feels realistic. You can adjust this later.',
   },
 ] as const;
+
+const mobileStepTitles = ['Age', 'Status', 'Goals', 'Pace'] as const;
 
 const statusIconMap: Record<OnboardingRole, LucideIcon> = {
   'School Student (Class 8-12)': School,
@@ -183,8 +189,8 @@ function OnboardingAtmosphere() {
         />
       </div>
 
-      <div className="pointer-events-none fixed left-[18%] top-0 hidden h-full w-px bg-white/6 xl:block" />
-      <div className="pointer-events-none fixed left-0 top-[26%] hidden h-px w-full bg-white/6 xl:block" />
+      <div className="pointer-events-none fixed left-[18%] top-0 hidden h-full w-px bg-white/6 2xl:block" />
+      <div className="pointer-events-none fixed left-0 top-[26%] hidden h-px w-full bg-white/6 2xl:block" />
     </>
   );
 }
@@ -224,6 +230,60 @@ function ProgressDots({ currentStep }: { currentStep: number }) {
           }`}
         />
       ))}
+    </div>
+  );
+}
+
+function SummarySnapshot({
+  summaryItems,
+  identity,
+  compact = false,
+}: {
+  summaryItems: SummaryItem[];
+  identity: string;
+  compact?: boolean;
+}) {
+  return (
+    <div className={compact ? 'space-y-4' : 'space-y-6'}>
+      <div
+        className={`rounded-[1.45rem] border border-white/8 bg-black/24 ${
+          compact ? 'p-4 sm:p-5' : 'p-4'
+        }`}
+      >
+        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/38">Personalization snapshot</div>
+
+        {compact ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {summaryItems.map((item) => (
+              <div key={item.label} className="rounded-[1rem] border border-white/8 bg-white/[0.03] px-4 py-3">
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/34">{item.label}</span>
+                <div className="mt-2 text-sm font-medium text-white/78">{item.value}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {summaryItems.map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center justify-between gap-4 rounded-[1.1rem] border border-white/8 bg-white/[0.03] px-4 py-3"
+              >
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/34">{item.label}</span>
+                <span className="max-w-[11rem] text-right text-sm text-white/78">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div
+        className={`rounded-[1.35rem] border border-white/8 bg-white/[0.03] ${
+          compact ? 'p-4 sm:p-5' : 'p-4'
+        }`}
+      >
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/38">Signed in as</div>
+        <p className="mt-2 break-words text-sm text-white/72">{identity}</p>
+      </div>
     </div>
   );
 }
@@ -268,7 +328,7 @@ export default function RoleOnboardingExperience({
         : 'Build My Roadmap'
       : 'Continue';
 
-  const summaryItems = [
+  const summaryItems: SummaryItem[] = [
     {
       label: 'Age',
       value: ageRange ?? 'Pending',
@@ -286,6 +346,7 @@ export default function RoleOnboardingExperience({
       value: learningPace ?? 'Pending',
     },
   ];
+  const signedInIdentity = email || initialProfile.name;
 
   const clearStatus = () => {
     if (status?.kind === 'error') {
@@ -409,7 +470,7 @@ export default function RoleOnboardingExperience({
   const renderStepContent = () => {
     if (currentStep === 0) {
       return (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {onboardingAgeRangeOptions.map((option) => {
             const selected = ageRange === option;
 
@@ -417,7 +478,7 @@ export default function RoleOnboardingExperience({
               <button
                 key={option}
                 type="button"
-                className={`group flex items-center justify-between rounded-[1.75rem] border px-6 py-6 text-left transition-all duration-300 ${
+                className={`group flex items-center justify-between gap-4 rounded-[1.5rem] border px-5 py-5 text-left transition-all duration-300 md:rounded-[1.75rem] md:px-6 md:py-6 ${
                   selected
                     ? 'border-white/50 bg-white/[0.11] shadow-[0_20px_60px_rgba(0,0,0,0.24)]'
                     : 'border-white/8 bg-white/[0.03] hover:border-white/18 hover:bg-white/[0.06]'
@@ -428,13 +489,15 @@ export default function RoleOnboardingExperience({
                 }}
                 aria-pressed={selected}
               >
-                <div>
+                <div className="min-w-0">
                   <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/36">Age range</div>
-                  <div className="mt-4 font-display text-3xl font-semibold text-white">{option}</div>
+                  <div className="mt-3 font-display text-[2rem] font-semibold leading-none text-white md:mt-4 md:text-3xl">
+                    {option}
+                  </div>
                 </div>
 
                 <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors md:h-11 md:w-11 ${
                     selected ? 'border-white bg-white text-black' : 'border-white/12 bg-white/[0.04] text-white/28'
                   }`}
                 >
@@ -449,7 +512,7 @@ export default function RoleOnboardingExperience({
 
     if (currentStep === 1) {
       return (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {onboardingRoleOptions.map((option) => {
             const selected = selectedRole === option.value;
             const Icon = statusIconMap[option.value];
@@ -458,7 +521,7 @@ export default function RoleOnboardingExperience({
               <button
                 key={option.value}
                 type="button"
-                className={`group relative overflow-hidden rounded-[1.75rem] border p-6 text-left transition-all duration-300 ${
+                className={`group relative overflow-hidden rounded-[1.5rem] border p-5 text-left transition-all duration-300 md:rounded-[1.75rem] md:p-6 ${
                   selected
                     ? 'border-white/50 bg-white/[0.11] shadow-[0_20px_60px_rgba(0,0,0,0.24)]'
                     : 'border-white/8 bg-white/[0.03] hover:border-white/18 hover:bg-white/[0.06]'
@@ -472,12 +535,12 @@ export default function RoleOnboardingExperience({
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.09),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent_52%,rgba(255,255,255,0.02))]" />
                 <div className="relative z-10 flex h-full flex-col justify-between">
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-white/78">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-white/78 md:h-12 md:w-12">
                       <Icon size={20} />
                     </div>
 
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors md:h-10 md:w-10 ${
                         selected ? 'border-white bg-white text-black' : 'border-white/12 bg-white/[0.04] text-white/28'
                       }`}
                     >
@@ -486,7 +549,9 @@ export default function RoleOnboardingExperience({
                   </div>
 
                   <div className="mt-8">
-                    <h3 className="font-display text-2xl font-semibold leading-tight text-white">{option.value}</h3>
+                    <h3 className="font-display text-[1.75rem] font-semibold leading-tight text-white md:text-2xl">
+                      {option.value}
+                    </h3>
                     <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/42">
                       {option.description}
                     </p>
@@ -509,7 +574,7 @@ export default function RoleOnboardingExperience({
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
             {onboardingLearningGoalOptions.map((goal) => {
               const selected = selectedGoals.includes(goal);
               const meta = goalMeta[goal];
@@ -519,7 +584,7 @@ export default function RoleOnboardingExperience({
                 <button
                   key={goal}
                   type="button"
-                  className={`group relative flex min-h-[12.5rem] flex-col justify-between overflow-hidden rounded-[1.6rem] border p-6 text-left transition-all duration-300 ${
+                  className={`group relative flex min-h-[11.5rem] flex-col justify-between overflow-hidden rounded-[1.45rem] border p-5 text-left transition-all duration-300 md:min-h-[12.5rem] md:rounded-[1.6rem] md:p-6 ${
                     selected
                       ? 'border-white/40 bg-white/[0.1] shadow-[0_18px_44px_rgba(0,0,0,0.2)]'
                       : 'border-white/8 bg-white/[0.03] hover:border-white/18 hover:bg-white/[0.06]'
@@ -529,7 +594,7 @@ export default function RoleOnboardingExperience({
                 >
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent_60%,rgba(255,255,255,0.02))]" />
                   <div className="relative z-10 flex items-start justify-between gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-white/72">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-white/72 md:h-12 md:w-12">
                       <Icon size={18} />
                     </div>
                     <div
@@ -542,7 +607,7 @@ export default function RoleOnboardingExperience({
                   </div>
 
                   <div className="relative z-10 mt-8">
-                    <h3 className="font-display text-2xl font-semibold leading-tight text-white">{goal}</h3>
+                    <h3 className="font-display text-[1.7rem] font-semibold leading-tight text-white md:text-2xl">{goal}</h3>
                     <p className="mt-3 text-sm leading-relaxed text-white/48">{meta.description}</p>
                   </div>
                 </button>
@@ -564,7 +629,7 @@ export default function RoleOnboardingExperience({
             <button
               key={pace}
               type="button"
-              className={`group flex w-full items-center justify-between gap-4 rounded-[1.75rem] border px-6 py-6 text-left transition-all duration-300 ${
+              className={`group flex w-full items-center justify-between gap-4 rounded-[1.5rem] border px-5 py-5 text-left transition-all duration-300 md:rounded-[1.75rem] md:px-6 md:py-6 ${
                 selected
                   ? 'border-white/50 bg-white/[0.11] shadow-[0_20px_60px_rgba(0,0,0,0.24)]'
                   : 'border-white/8 bg-white/[0.03] hover:border-white/18 hover:bg-white/[0.06]'
@@ -575,24 +640,24 @@ export default function RoleOnboardingExperience({
               }}
               aria-pressed={selected}
             >
-              <div className="flex items-center gap-5">
+              <div className="flex min-w-0 items-center gap-4 md:gap-5">
                 <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-full border ${
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border md:h-12 md:w-12 ${
                     selected ? 'border-white bg-white text-black' : 'border-white/12 bg-white/[0.04] text-white/64'
                   }`}
                 >
                   <Icon size={18} />
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/34">{meta.eyebrow}</div>
-                  <div className="mt-2 font-display text-3xl font-semibold text-white">{pace}</div>
-                  <div className="mt-2 text-base text-white/58">{meta.duration}</div>
+                  <div className="mt-2 font-display text-[1.9rem] font-semibold leading-none text-white md:text-3xl">{pace}</div>
+                  <div className="mt-2 text-sm text-white/58 md:text-base">{meta.duration}</div>
                 </div>
               </div>
 
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors md:h-10 md:w-10 ${
                   selected ? 'border-white bg-white text-black' : 'border-white/12 bg-white/[0.04] text-white/28'
                 }`}
               >
@@ -606,7 +671,7 @@ export default function RoleOnboardingExperience({
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black text-white">
+    <div className="relative min-h-[100dvh] overflow-x-hidden bg-black text-white">
       <OnboardingAtmosphere />
 
       <header className="fixed left-0 top-0 z-40 w-full border-b border-white/8 bg-black/72 px-4 py-4 backdrop-blur-2xl md:px-8">
@@ -617,12 +682,12 @@ export default function RoleOnboardingExperience({
             </Link>
 
             <div className="flex items-center gap-4">
-              <span className="font-mono text-[10px] uppercase tracking-[0.26em] text-white/52">
+              <span className="font-mono text-[9px] uppercase tracking-[0.24em] text-white/52 sm:text-[10px] sm:tracking-[0.26em]">
                 Step {currentStep + 1} of {stepCopy.length}
               </span>
               <Link
                 href="/auth/signout"
-                className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/62 transition-colors hover:bg-white/[0.08] hover:text-white md:inline-flex"
+                className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/62 transition-colors hover:bg-white/[0.08] hover:text-white sm:inline-flex"
               >
                 Sign Out
               </Link>
@@ -638,14 +703,15 @@ export default function RoleOnboardingExperience({
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto flex min-h-screen max-w-[1500px] flex-col px-4 pb-40 pt-28 md:px-8 md:pt-32 xl:flex-row xl:items-start xl:gap-10">
-        <section className="hidden w-full xl:sticky xl:top-32 xl:block xl:max-w-[24rem]">
+      <main className="relative z-10 mx-auto max-w-[1720px] px-4 pb-8 pt-24 md:px-6 md:pt-28 lg:px-8 lg:pb-10 xl:pt-32">
+        <div className="grid gap-5 xl:grid-cols-[minmax(21rem,24rem)_minmax(0,1fr)] xl:gap-8 2xl:grid-cols-[minmax(23rem,27rem)_minmax(0,1fr)] 2xl:gap-12">
+          <section className="hidden xl:block">
           <motion.div
             key={`summary-${currentStep}`}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-[30px]"
+            className="sticky top-[8rem] overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-7 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-[30px] 2xl:p-8"
           >
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_16px_rgba(255,255,255,0.68)]" />
@@ -655,126 +721,123 @@ export default function RoleOnboardingExperience({
             </div>
 
             <div className="mt-8 space-y-4">
-              <h1 className="font-display text-5xl font-semibold leading-[0.92] tracking-tight text-white">
+              <h1 className="font-display text-[3.4rem] font-semibold leading-[0.92] tracking-tight text-white 2xl:text-[4.2rem]">
                 {step.title}
               </h1>
-              <p className="text-sm leading-relaxed text-white/58">{step.helper}</p>
+              <p className="max-w-[18rem] text-sm leading-relaxed text-white/58 2xl:max-w-[20rem]">{step.helper}</p>
             </div>
 
-            <div className="mt-8 rounded-[1.6rem] border border-white/8 bg-black/24 p-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/38">Personalization snapshot</div>
-              <div className="mt-4 space-y-3">
-                {summaryItems.map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between rounded-[1.1rem] border border-white/8 bg-white/[0.03] px-4 py-3"
-                  >
-                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/34">{item.label}</span>
-                    <span className="max-w-[11rem] text-right text-sm text-white/78">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-8 rounded-[1.4rem] border border-white/8 bg-white/[0.03] p-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/38">Signed in as</div>
-              <p className="mt-2 break-words text-sm text-white/72">{email || initialProfile.name}</p>
+            <div className="mt-8">
+              <SummarySnapshot summaryItems={summaryItems} identity={signedInIdentity} />
             </div>
           </motion.div>
-        </section>
+          </section>
 
-        <section className="mt-0 flex-1">
-          <motion.div
-            key={`panel-${currentStep}`}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.045] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-[30px] md:p-8"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent_42%,rgba(255,255,255,0.02))]" />
+          <section className="min-w-0">
+            <motion.div
+              key={`panel-${currentStep}`}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.62, ease: [0.16, 1, 0.3, 1] }}
+              className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-[30px] md:rounded-[2rem] md:p-8 xl:p-10 2xl:p-12"
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent_42%,rgba(255,255,255,0.02))]" />
 
-            <div className="relative z-10">
-              <div className="mb-8 flex flex-col gap-5 border-b border-white/8 pb-8">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/54">
-                    {step.eyebrow}
-                  </span>
-                  {currentStep === 2 ? (
-                    <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-                      Multi-select
+              <div className="relative z-10">
+                <div className="mb-6 flex flex-col gap-4 border-b border-white/8 pb-6 md:mb-8 md:gap-5 md:pb-8 xl:mb-10 xl:pb-10">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/54 sm:inline-flex">
+                      {step.eyebrow}
                     </span>
-                  ) : null}
+                    {currentStep === 2 ? (
+                      <span className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/40 sm:inline-flex">
+                        Multi-select
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="sm:hidden">
+                    <h2 className="font-display text-[2.3rem] font-semibold leading-[0.95] tracking-tight text-white">
+                      {mobileStepTitles[currentStep]}
+                    </h2>
+                  </div>
+
+                  <div className="hidden sm:block">
+                    <h2 className="max-w-4xl font-display text-[2.75rem] font-semibold leading-[0.92] tracking-tight text-white lg:text-[3.4rem] 2xl:text-[4rem]">
+                      {step.title}
+                    </h2>
+                    <p className="mt-3 max-w-2xl text-base leading-relaxed text-white/56 md:mt-4 md:text-lg">{step.subtitle}</p>
+                  </div>
                 </div>
 
-                <div>
-                  <h2 className="max-w-4xl font-display text-4xl font-semibold leading-[0.94] tracking-tight text-white md:text-6xl">
-                    {step.title}
-                  </h2>
-                  <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/56 md:text-lg">{step.subtitle}</p>
-                </div>
+                <div>{renderStepContent()}</div>
+
+                {status ? (
+                  <div className="mt-6 rounded-[1.4rem] border border-white/10 bg-black/24 px-4 py-4">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/38">
+                      {status.kind === 'success'
+                        ? 'Saved'
+                        : status.kind === 'error'
+                          ? 'Need attention'
+                          : 'In progress'}
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-white/74">{status.message}</p>
+                  </div>
+                ) : null}
+              </div>
+            </motion.div>
+          </section>
+        </div>
+
+        <footer className="sticky bottom-0 z-30 mt-6 border-t border-white/6 bg-gradient-to-t from-black via-black/92 to-transparent pb-3 pt-5 md:pb-4">
+          <div className="rounded-[1.5rem] border border-white/8 bg-black/78 px-4 py-4 shadow-[0_26px_60px_rgba(0,0,0,0.42)] backdrop-blur-[28px] sm:px-5 lg:px-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="order-2 flex sm:order-1 sm:flex-none">
+                <button
+                  type="button"
+                  className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] transition-colors sm:w-auto ${
+                    currentStep === 0 || isSubmitting
+                      ? 'cursor-not-allowed text-white/20'
+                      : 'text-white/58 hover:bg-white/[0.05] hover:text-white'
+                  }`}
+                  onClick={handleBack}
+                  disabled={currentStep === 0 || isSubmitting}
+                >
+                  <ArrowLeft size={14} />
+                  Back
+                </button>
               </div>
 
-              <div>{renderStepContent()}</div>
+              <div className="order-1 flex justify-center sm:order-2">
+                <ProgressDots currentStep={currentStep} />
+              </div>
 
-              {status ? (
-                <div className="mt-6 rounded-[1.4rem] border border-white/10 bg-black/24 px-4 py-4">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/38">
-                    {status.kind === 'success'
-                      ? 'Saved'
-                      : status.kind === 'error'
-                        ? 'Need attention'
-                        : 'In progress'}
-                  </div>
-                  <p className="mt-2 text-sm leading-relaxed text-white/74">{status.message}</p>
-                </div>
-              ) : null}
+              <div className="order-3 flex sm:flex-none">
+                <button
+                  type="button"
+                  className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.22em] transition-all sm:w-auto ${
+                    canContinue && !isSubmitting
+                      ? 'bg-white text-black shadow-[0_0_26px_rgba(255,255,255,0.16)] hover:scale-[0.99]'
+                      : 'cursor-not-allowed bg-white/18 text-white/34'
+                  }`}
+                  onClick={() => {
+                    if (currentStep === stepCopy.length - 1) {
+                      void handleSubmit();
+                      return;
+                    }
+
+                    handleNextStep();
+                  }}
+                  disabled={!canContinue || isSubmitting}
+                >
+                  <span>{primaryActionLabel}</span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
             </div>
-          </motion.div>
-        </section>
-      </main>
-
-      <footer className="fixed bottom-0 left-0 z-40 w-full px-4 pb-4 pt-4 md:px-8 md:pb-6">
-        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 rounded-[2rem] border border-white/8 bg-black/78 px-4 py-4 shadow-[0_26px_60px_rgba(0,0,0,0.42)] backdrop-blur-[28px] md:px-6">
-          <button
-            type="button"
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] transition-colors ${
-              currentStep === 0 || isSubmitting
-                ? 'cursor-not-allowed text-white/20'
-                : 'text-white/58 hover:bg-white/[0.05] hover:text-white'
-            }`}
-            onClick={handleBack}
-            disabled={currentStep === 0 || isSubmitting}
-          >
-            <ArrowLeft size={14} />
-            Back
-          </button>
-
-          <div className="hidden md:block">
-            <ProgressDots currentStep={currentStep} />
           </div>
-
-          <button
-            type="button"
-            className={`inline-flex items-center gap-2 rounded-full px-6 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.22em] transition-all ${
-              canContinue && !isSubmitting
-                ? 'bg-white text-black shadow-[0_0_26px_rgba(255,255,255,0.16)] hover:scale-[0.99]'
-                : 'cursor-not-allowed bg-white/18 text-white/34'
-            }`}
-            onClick={() => {
-              if (currentStep === stepCopy.length - 1) {
-                void handleSubmit();
-                return;
-              }
-
-              handleNextStep();
-            }}
-            disabled={!canContinue || isSubmitting}
-          >
-            <span>{primaryActionLabel}</span>
-            <ArrowRight size={15} />
-          </button>
-        </div>
-      </footer>
+        </footer>
+      </main>
     </div>
   );
 }

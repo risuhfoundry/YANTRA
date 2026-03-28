@@ -45,6 +45,7 @@ The app is no longer just a static marketing-plus-dashboard shell. Authenticatio
 - Next.js App Router runtime on Vercel-compatible setup
 - Supabase SSR auth with cookie refresh handled through `proxy.ts`
 - automatic profile seeding in `public.profiles` for first-time signed-in users
+- onboarding shown after new account creation, with login returning to the dashboard
 - profile persistence from `/dashboard/student-profile`
 - protected dashboard redirects for signed-out visitors
 - password reset email flow and reset page

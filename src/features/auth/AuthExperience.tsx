@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import {
   ArrowRight,
+  BookOpen,
   CheckCircle2,
   Eye,
   EyeOff,
@@ -241,7 +242,7 @@ function describeAuthStatus(status: AuthStatus): AuthStatusPresentation | null {
       return {
         eyebrow: 'Identity Provisioned',
         title: 'Your Yantra account is ready',
-        body: 'Confirm the email link, then return to this gateway to enter your dashboard.',
+        body: 'Confirm the email link to start onboarding for this new account.',
         icon: CheckCircle2,
         chromeClassName: 'border-white/12 bg-white/[0.05]',
         iconClassName: 'border-white/12 bg-white text-black',
@@ -295,6 +296,17 @@ function describeAuthStatus(status: AuthStatus): AuthStatusPresentation | null {
     }
   }
 
+  if (status.kind === 'error' && normalized.includes('email rate limit exceeded')) {
+    return {
+      eyebrow: 'Supabase Limit Hit',
+      title: 'Signup email sending is blocked right now',
+      body: 'For local testing, open Supabase Auth > Providers > Email and turn off Confirm email, then try signup again. The app will send the new account straight to onboarding.',
+      icon: ShieldAlert,
+      chromeClassName: 'border-red-300/30 bg-red-400/10',
+      iconClassName: 'border-red-300/25 bg-red-500/10 text-red-100',
+    };
+  }
+
   return {
     eyebrow: status.kind === 'error' ? 'Signal Interrupted' : status.kind === 'success' ? 'Status' : 'System Notice',
     title:
@@ -326,6 +338,8 @@ export default function AuthExperience({
   supabaseConfigured: boolean;
 }) {
   const content = authContent[mode];
+  const docsHref = mode === 'login' ? '/docs/sign-in-and-google' : '/docs/create-account';
+  const docsLabel = mode === 'login' ? 'Read sign-in docs' : 'Read account setup docs';
   const router = useRouter();
   const [fields, setFields] = useState<AuthFields>({
     fullName: '',
@@ -471,7 +485,7 @@ export default function AuthExperience({
       setStatus({
         kind: 'success',
         message:
-          'Account created. Check your email for the confirmation link, then come back and log in to enter Yantra.',
+          'Account created. Check your email for the confirmation link to start onboarding.',
       });
     } catch (error) {
       setStatus({
@@ -540,7 +554,8 @@ export default function AuthExperience({
 
     try {
       const supabase = createSupabaseBrowserClient();
-      const redirectTo = `${window.location.origin}/auth/confirm?next=/dashboard`;
+      const nextPath = mode === 'signup' ? '/onboarding' : '/dashboard';
+      const redirectTo = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(nextPath)}`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -687,6 +702,13 @@ export default function AuthExperience({
                     ? 'This access layer is now connected to Supabase with session cookies, protected routes, and a synced student profile record.'
                     : 'This auth surface is ready, but it still needs your Supabase project URL and anon key before sign-in can go live.'}
                 </p>
+                <Link
+                  href={docsHref}
+                  className="mt-4 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/42 transition-colors hover:text-white"
+                >
+                  <BookOpen size={14} />
+                  {docsLabel}
+                </Link>
               </div>
 
               <form className="space-y-6" onSubmit={handleSubmit} autoComplete="off">

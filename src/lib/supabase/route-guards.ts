@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getAuthenticatedAppPath, isOnboardingComplete } from '@/src/features/dashboard/student-profile-model';
+import { isOnboardingComplete } from '@/src/features/dashboard/student-profile-model';
 import { hasSupabaseEnv } from './env';
 import { getAuthenticatedProfile } from './profiles';
 
@@ -28,13 +28,7 @@ export async function redirectAuthenticatedUserToApp() {
   const result = await getAuthenticatedProfile();
 
   if (result) {
-    redirect(
-      result.supportsOnboardingSchema
-        ? getAuthenticatedAppPath(result.profile, {
-            requireProfileDetails: result.supportsEnhancedOnboardingSchema,
-          })
-        : '/dashboard',
-    );
+    redirect('/dashboard');
   }
 
   return null;

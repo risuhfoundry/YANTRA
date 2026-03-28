@@ -11,6 +11,7 @@ export const marketingNavLinks = [
   { label: 'Capabilities', href: '#academics' },
   { label: 'Use Cases', href: '#campus-life' },
   { label: 'Access', href: '#contact' },
+  { label: 'Docs', href: '/docs' },
 ] as const;
 
 export const marketingTickerItems = [

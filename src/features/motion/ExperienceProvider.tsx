@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import {
   Suspense,
   createContext,
-  Suspense,
   useCallback,
   useContext,
   useEffect,

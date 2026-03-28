@@ -59,7 +59,7 @@ export const sideNavItems: StudentProfileNavItem[] = [
 ];
 
 export const supportNavItems: StudentProfileNavItem[] = [
-  { label: 'Help', icon: HelpCircle, action: 'help' },
+  { label: 'Docs', icon: HelpCircle, href: '/docs/student-profile' },
   { label: 'Logout', icon: LogOut, href: '/auth/signout' },
 ];
 

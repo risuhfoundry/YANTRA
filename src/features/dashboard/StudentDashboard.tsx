@@ -511,6 +511,14 @@ function DashboardNav() {
           </div>
 
           <div className="hidden items-center gap-4 md:flex">
+            <Link
+              href="/docs/first-dashboard-session"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-white/70 transition-colors hover:bg-white/[0.08] hoverable"
+            >
+              <BookOpen size={14} />
+              Docs
+            </Link>
+
             <button
               type="button"
               className="rounded-full bg-white px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.24em] text-black transition-colors hover:bg-white/92 hoverable"
@@ -576,7 +584,17 @@ function DashboardNav() {
               </motion.a>
             ))}
 
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
+              <Link
+                href="/docs/first-dashboard-session"
+                className="rounded-full border border-white/12 bg-white/[0.04] px-7 py-3 font-mono text-[11px] uppercase tracking-[0.24em] text-white hoverable"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Docs
+              </Link>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}>
               <Link
                 href="/dashboard/student-profile"
                 className="rounded-full border border-white/12 bg-white/[0.04] px-7 py-3 font-mono text-[11px] uppercase tracking-[0.24em] text-white hoverable"
@@ -591,7 +609,7 @@ function DashboardNav() {
               className="mt-6 rounded-full bg-white px-7 py-3 font-mono text-[11px] uppercase tracking-[0.24em] text-black hoverable"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.34 }}
+              transition={{ delay: 0.36 }}
               onClick={() => {
                 setMobileMenuOpen(false);
                 openChat({ message: 'Help me continue learning from my current student dashboard context.' });

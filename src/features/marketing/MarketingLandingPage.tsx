@@ -77,14 +77,24 @@ function Nav() {
 
           <div className="hidden items-center gap-8 md:flex">
             {marketingNavLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                data-no-route-loader="true"
-                className="hoverable text-xs font-bold uppercase tracking-widest text-muted transition-colors hover:text-white"
-              >
-                {link.label}
-              </a>
+              link.href.startsWith('#') ? (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  data-no-route-loader="true"
+                  className="hoverable text-xs font-bold uppercase tracking-widest text-muted transition-colors hover:text-white"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="hoverable text-xs font-bold uppercase tracking-widest text-muted transition-colors hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              )
             ))}
 
             <Link
@@ -127,18 +137,35 @@ function Nav() {
 
           <div className="flex flex-1 flex-col items-center justify-center gap-6 py-10">
             {marketingNavLinks.map((link, index) => (
-              <motion.a
-                key={link.label}
-                href={link.href}
-                data-no-route-loader="true"
-                className="hoverable font-heading text-6xl uppercase tracking-widest"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: index * 0.1 }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </motion.a>
+              link.href.startsWith('#') ? (
+                <motion.a
+                  key={link.label}
+                  href={link.href}
+                  data-no-route-loader="true"
+                  className="hoverable font-heading text-6xl uppercase tracking-widest"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </motion.a>
+              ) : (
+                <motion.div
+                  key={link.label}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Link
+                    href={link.href}
+                    className="hoverable font-heading text-6xl uppercase tracking-widest"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
+              )
             ))}
 
             <motion.div

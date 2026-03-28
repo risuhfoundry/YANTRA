@@ -95,14 +95,14 @@ Inside Supabase Auth settings:
 - `/onboarding` collects the user's Yantra role before the main dashboard opens
 - `/login` signs the user in
 - `/dashboard` redirects to `/login` if no valid session exists
-- `/dashboard` redirects to `/onboarding` until the signed-in user has completed role selection
+- `/dashboard` opens for any authenticated user, while onboarding is shown from the new-account flow
 - `/dashboard/student-profile` reads and saves the current learner profile from Supabase instead of local browser storage
 ### Redirect URLs
 
-- `http://localhost:3000/auth/confirm`
-- `http://localhost:3000/auth/reset-password`
-- `https://YOUR-PRODUCTION-DOMAIN/auth/confirm`
-- `https://YOUR-PRODUCTION-DOMAIN/auth/reset-password`
+- `http://localhost:3000/auth/confirm**`
+- `http://localhost:3000/auth/reset-password**`
+- `https://YOUR-PRODUCTION-DOMAIN/auth/confirm**`
+- `https://YOUR-PRODUCTION-DOMAIN/auth/reset-password**`
 
 ## What The App Does With Supabase
 
@@ -110,7 +110,8 @@ Inside Supabase Auth settings:
 
 - creates a Supabase user with email and password
 - stores `full_name` in user metadata
-- sends users through `/auth/confirm?next=/dashboard` when email verification is enabled
+- sends users through `/auth/confirm?next=/onboarding` when email verification is enabled
+- opens `/onboarding` immediately when Supabase returns a session for the new account
 
 ### `/login`
 
@@ -135,7 +136,9 @@ Inside Supabase Auth settings:
 
 - verifies email confirmation links from Supabase when `token_hash` and `type` are present
 - completes Google OAuth sign-in by exchanging the provider `code` for a session cookie
-- redirects to `/dashboard` by default after either flow succeeds
+- redirects to the `next` path from the auth URL
+- routes new-account confirmations to `/onboarding`
+- routes login and returning auth flows to `/dashboard`
 
 ### `/dashboard/student-profile`
 
@@ -178,13 +181,15 @@ The row is sanitized before insert and update.
 5. Start the app with `npm run dev`.
 6. Open `/signup` and create an account.
 7. Confirm the email if email confirmation is enabled.
-8. Complete the `/onboarding` role selection screen if the account is new.
-9. Open `/dashboard`.
-10. Open `/dashboard/student-profile`, edit the record, and save it.
-11. Reload and confirm the updated profile persisted.
-12. Open `/login`, request a password reset, and verify the recovery page lets you set a new password.
-13. Test Google sign-in from `/login` or `/signup` after the Google provider is enabled in Supabase.
-14. Open the chat as an authenticated learner, send a message, reload, and confirm the conversation resumes.
+8. Confirm you land on `/onboarding` for the new account.
+9. Complete the `/onboarding` role selection screen.
+10. Open `/dashboard`.
+11. Sign out, open `/login`, and confirm the same account returns to `/dashboard` without onboarding.
+12. Open `/dashboard/student-profile`, edit the record, and save it.
+13. Reload and confirm the updated profile persisted.
+14. Open `/login`, request a password reset, and verify the recovery page lets you set a new password.
+15. Test Google sign-in from `/login` or `/signup` after the Google provider is enabled in Supabase.
+16. Open the chat as an authenticated learner, send a message, reload, and confirm the conversation resumes.
 
 ## Known Gaps
 
@@ -207,6 +212,6 @@ Re-run `supabase/schema.sql` against an existing project to add these columns if
 3. Add `GEMINI_API_KEY` in Vercel.
 4. Apply `supabase/schema.sql` to the production Supabase project.
 5. Update Supabase Site URL to the production domain.
-6. Add the production `/auth/confirm` and `/auth/reset-password` URLs to Redirect URLs.
+6. Add the production `/auth/confirm**` and `/auth/reset-password**` URLs to Redirect URLs.
 7. In Supabase Auth, enable the Google provider and add the Google OAuth client ID and secret.
 8. In Google Cloud, add your Supabase project callback URL from the Google provider setup screen as an authorized redirect URI.
