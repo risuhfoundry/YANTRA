@@ -17,7 +17,6 @@ import {
   Waypoints,
 } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { BrandLogo } from '@/src/components/BrandLogo';
 import { createClient as createSupabaseBrowserClient } from '@/src/lib/supabase/client';
 import { startRouteTransition } from '@/src/features/motion/ExperienceProvider';
 
@@ -586,7 +585,7 @@ export default function AuthExperience({
       <header className="fixed left-0 top-0 z-40 w-full px-6 py-6 md:px-8">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <Link href="/" className="font-heading text-3xl tracking-wider text-white hoverable">
-            <BrandLogo priority markClassName="h-10 w-10" labelClassName="text-3xl tracking-wider" />
+            YANTRA<span className="text-white/45">.</span>
           </Link>
 
           <div className="hidden items-center gap-3 md:flex">

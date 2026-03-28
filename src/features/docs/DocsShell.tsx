@@ -16,7 +16,6 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import { BrandLogo } from '@/src/components/BrandLogo';
 import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
 import { docsGroups, getDocsArticleBySlug, getDocsArticleHref, getDocsArticlesByGroup, type DocsGroupId } from './docs-content';
 
@@ -80,7 +79,7 @@ function DocsTopNav({ isHome }: { isHome: boolean }) {
     <header className="fixed inset-x-0 top-0 z-40 border-b border-white/6 bg-black/72 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-[1680px] items-center justify-between px-5 sm:px-6 lg:px-8">
         <Link href="/docs" className="font-heading text-3xl tracking-widest text-white hoverable">
-          <BrandLogo markClassName="h-10 w-10" labelClassName="text-3xl tracking-widest" />
+          YANTRA<span className="text-white/45">.</span>
         </Link>
 
         <nav className="hidden items-center gap-10 lg:flex">

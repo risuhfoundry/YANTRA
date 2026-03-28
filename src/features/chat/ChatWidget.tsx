@@ -12,7 +12,6 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
-import { BrandMark } from '@/src/components/BrandLogo';
 import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
 import {
   MAX_PERSISTED_CHAT_MESSAGES,
@@ -107,10 +106,7 @@ function ChatPanel({
                   </div>
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/45">AI Teacher</div>
-                    <div className="flex items-center gap-2">
-                      <BrandMark className="h-5 w-5" />
-                      <div className="text-base font-medium text-white">Yantra</div>
-                    </div>
+                    <div className="text-base font-medium text-white">Yantra</div>
                   </div>
                 </div>
 
@@ -203,7 +199,6 @@ function ChatPanel({
                     {isSending && (
                       <div className="max-w-[88%]">
                         <div className="inline-flex items-center gap-2 rounded-3xl rounded-bl-md border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white/65 md:px-5 md:py-4">
-                          <BrandMark className="h-4 w-4" />
                           <span className="font-mono text-[10px] uppercase tracking-[0.24em]">Yantra</span>
                           <div className="flex items-center gap-1">
                             <span className="h-1.5 w-1.5 rounded-full bg-white/50 animate-pulse" />

@@ -11,7 +11,6 @@ import {
   Settings2,
   UserCircle2,
 } from 'lucide-react';
-import { BrandLogo } from '@/src/components/BrandLogo';
 import { startRouteTransition } from '@/src/features/motion/ExperienceProvider';
 import StudentProfileCard, { type StudentProfileCardHandle } from './StudentProfileCard';
 import YantraAmbientBackground from './YantraAmbientBackground';
@@ -457,10 +456,7 @@ export default function StudentProfilePage({
       <header className="fixed left-0 top-0 z-40 w-full border-b border-white/8 bg-black/72 px-4 py-4 backdrop-blur-2xl lg:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Link href="/dashboard" className="font-display text-2xl font-bold tracking-tight text-white uppercase cursor-pointer">
-            <BrandLogo
-              markClassName="h-8 w-8"
-              labelClassName="font-display text-2xl font-bold tracking-tight text-white uppercase"
-            />
+            YANTRA
           </Link>
           <Link
             href="/dashboard"
@@ -553,10 +549,7 @@ export default function StudentProfilePage({
 
       <aside className="fixed left-0 top-0 z-30 hidden h-full w-64 flex-col border-r border-white/8 bg-black/62 px-4 pb-8 pt-10 backdrop-blur-2xl xl:flex">
         <div className="mb-12 flex flex-col gap-2 px-2">
-          <BrandLogo
-            markClassName="h-9 w-9"
-            labelClassName="font-display text-xl font-bold tracking-tight text-white uppercase"
-          />
+          <div className="font-display text-xl font-bold text-white">YANTRA</div>
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">Institutional Portal</div>
         </div>
 
