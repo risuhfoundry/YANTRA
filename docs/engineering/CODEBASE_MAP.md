@@ -10,25 +10,35 @@ Yantra/
 |   |   |-- chat/
 |   |   |   |-- history/route.ts
 |   |   |   `-- route.ts
+|   |   |-- docs-support/route.ts
 |   |   `-- profile/route.ts
 |   |-- auth/
 |   |   |-- confirm/route.ts
 |   |   |-- reset-password/page.tsx
 |   |   `-- signout/route.ts
 |   |-- dashboard/
-|   |   |-- rooms/
-|   |   |   `-- [slug]/page.tsx
 |   |   |-- student-profile/page.tsx
 |   |   `-- page.tsx
+|   |-- docs/
+|   |   |-- [slug]/page.tsx
+|   |   `-- page.tsx
 |   |-- login/page.tsx
+|   |-- onboarding/page.tsx
+|   |-- privacy/page.tsx
+|   |-- reset-password/page.tsx
 |   |-- signup/page.tsx
+|   |-- status/page.tsx
+|   |-- terms/page.tsx
+|   |-- icon.png
 |   |-- layout.tsx
 |   `-- page.tsx
 |-- docs/
 |-- src/
 |   |-- features/
 |   |   |-- access/AccessRequestForm.tsx
-|   |   |-- auth/AuthExperience.tsx
+|   |   |-- auth/
+|   |   |   |-- AuthExperience.tsx
+|   |   |   `-- ResetPasswordExperience.tsx
 |   |   |-- chat/
 |   |   |   |-- ChatMessageContent.tsx
 |   |   |   |-- ChatWidget.tsx
@@ -37,22 +47,34 @@ Yantra/
 |   |   |   |-- StudentDashboard.tsx
 |   |   |   |-- StudentProfileCard.tsx
 |   |   |   |-- StudentProfilePage.tsx
+|   |   |   |-- student-dashboard-model.ts
+|   |   |   |-- student-profile-content.ts
 |   |   |   |-- student-profile-model.ts
 |   |   |   `-- YantraAmbientBackground.tsx
-|   |   |-- rooms/
-|   |   |   |-- RoomExperience.tsx
-|   |   |   |-- room-content.ts
-|   |   |   `-- room-schema.ts
-|   |   |-- marketing/MarketingLandingPage.tsx
-|   |   `-- motion/ExperienceProvider.tsx
+|   |   |-- docs/
+|   |   |   |-- docs-content.ts
+|   |   |   |-- docs-support.ts
+|   |   |   |-- DocsArticlePage.tsx
+|   |   |   |-- DocsHomePage.tsx
+|   |   |   |-- DocsShell.tsx
+|   |   |   `-- DocsSupportWidget.tsx
+|   |   |-- legal/
+|   |   |-- marketing/
+|   |   |   |-- marketing-content.ts
+|   |   |   `-- MarketingLandingPage.tsx
+|   |   |-- motion/ExperienceProvider.tsx
+|   |   |-- onboarding/RoleOnboardingExperience.tsx
+|   |   `-- rooms/
 |   |-- lib/
 |   |   `-- supabase/
 |   |       |-- access-requests.ts
 |   |       |-- chat-history.ts
 |   |       |-- client.ts
+|   |       |-- dashboard.ts
 |   |       |-- env.ts
 |   |       |-- profiles.ts
 |   |       |-- proxy.ts
+|   |       |-- route-guards.ts
 |   |       `-- server.ts
 |   `-- styles/globals.css
 |-- supabase/schema.sql
@@ -74,27 +96,39 @@ Client-side access request form used by the marketing surface.
 
 ### `src/features/auth/`
 
-The login/signup experience, validation, browser-side Supabase auth calls, and status messaging.
+The login/signup experience, validation, browser-side Supabase auth calls, Google OAuth handoff, and status messaging.
 
 ### `src/features/chat/`
 
-The chat widget, prompt/config helpers, and rich message rendering.
+The main Yantra chat widget, prompt/config helpers, and rich message rendering.
 
 ### `src/features/dashboard/`
 
-The protected dashboard and student-profile UI, plus the local student profile model helpers.
+The protected dashboard and student-profile UI, plus the local dashboard/profile model helpers.
 
-### `src/features/rooms/`
+### `src/features/docs/`
 
-The typed room schema, seeded room content, and the protected room experience UI.
+The standalone docs/help center, article content model, and the separate Support Desk widget and retrieval logic.
+
+### `src/features/legal/`
+
+Legal and info-page UI used by `/privacy`, `/terms`, and `/status`.
 
 ### `src/features/marketing/`
 
-The public landing page implementation. This is still a large single feature file.
+The public landing page implementation plus its structured content config.
 
 ### `src/features/motion/`
 
-Shared experience helpers such as overlay locking used by the chat widget and mobile navigation layers.
+Shared experience helpers such as route-transition loading and overlay locking.
+
+### `src/features/onboarding/`
+
+The role- and goal-selection onboarding experience used for newly created accounts.
+
+### `src/features/rooms/`
+
+Reserved room-related feature space for future practice-room work. It is not yet a major runtime surface.
 
 ### `src/lib/supabase/`
 
@@ -103,14 +137,16 @@ Shared Supabase integration code:
 - `env.ts` checks and returns required env vars
 - `client.ts` builds the browser client
 - `server.ts` builds the server client
+- `route-guards.ts` enforces auth and optional onboarding constraints
+- `profiles.ts` loads, seeds, and updates learner profile data
+- `dashboard.ts` loads and seeds persisted starter dashboard data
 - `access-requests.ts` validates and inserts public access requests
 - `chat-history.ts` loads and upserts authenticated learner chat history
 - `proxy.ts` refreshes auth cookies for requests
-- `profiles.ts` loads, seeds, and updates learner profile data
 
 ### `supabase/`
 
-Project SQL required for the current profile persistence layer.
+Project SQL required for the current auth, profile, dashboard, access-request, and chat-history persistence layers.
 
 ## Route Ownership
 
@@ -119,12 +155,18 @@ Project SQL required for the current profile persistence layer.
 - `app/page.tsx` -> `src/features/marketing/MarketingLandingPage.tsx`
 - `app/login/page.tsx` -> `src/features/auth/AuthExperience.tsx`
 - `app/signup/page.tsx` -> `src/features/auth/AuthExperience.tsx`
+- `app/onboarding/page.tsx` -> `src/features/onboarding/RoleOnboardingExperience.tsx`
 - `app/auth/reset-password/page.tsx` -> `src/features/auth/ResetPasswordExperience.tsx`
+- `app/reset-password/page.tsx` -> `src/features/auth/ResetPasswordExperience.tsx`
+- `app/docs/page.tsx` -> `src/features/docs/DocsHomePage.tsx`
+- `app/docs/[slug]/page.tsx` -> `src/features/docs/DocsArticlePage.tsx`
+- `app/privacy/page.tsx` -> `src/features/legal/`
+- `app/terms/page.tsx` -> `src/features/legal/`
+- `app/status/page.tsx` -> `src/features/legal/`
 
 ### Protected routes
 
 - `app/dashboard/page.tsx` -> `src/features/dashboard/StudentDashboard.tsx`
-- `app/dashboard/rooms/[slug]/page.tsx` -> `src/features/rooms/RoomExperience.tsx`
 - `app/dashboard/student-profile/page.tsx` -> `src/features/dashboard/StudentProfilePage.tsx`
 
 ### API routes
@@ -133,6 +175,7 @@ Project SQL required for the current profile persistence layer.
 - `app/api/chat/history/route.ts`
 - `app/api/profile/route.ts`
 - `app/api/access-requests/route.ts`
+- `app/api/docs-support/route.ts`
 
 ### Auth utility routes
 
@@ -141,9 +184,10 @@ Project SQL required for the current profile persistence layer.
 
 ## Current Organization Notes
 
-- `MarketingLandingPage.tsx` is still the largest single UI file in the repo.
-- `StudentDashboard.tsx` and `StudentProfilePage.tsx` still contain a significant amount of presentation data inline.
-- `src/lib/supabase/profiles.ts` is the main persistence boundary for authenticated learner profile behavior.
+- `MarketingLandingPage.tsx` is still one of the largest single UI files in the repo.
+- `StudentDashboard.tsx` and `StudentProfilePage.tsx` still contain a significant amount of presentation-heavy layout code.
+- `src/features/docs/docs-content.ts` is the content source of truth for the docs system and the Support Desk retrieval layer.
+- `src/lib/supabase/dashboard.ts` is the persistence boundary for starter dashboard data.
 - `proxy.ts` at the repo root is required for Supabase SSR cookie refresh and should be treated as active runtime code, not a leftover file.
 
 ## Reference And Non-Runtime Items
@@ -153,8 +197,10 @@ Project SQL required for the current profile persistence layer.
 Holds design and product inputs:
 
 - `dashboard-sample/`
+- `Docs page design/`
 - `Login-signup-sample/`
 - `build-plan/`
+- `rooms/`
 
 ### Root-level local artifacts
 
@@ -170,4 +216,4 @@ These are not part of the active application runtime and should not be deleted c
 - keep Supabase-specific helpers inside `src/lib/supabase/`
 - keep route-specific UI in the matching `src/features/` folder
 - split `MarketingLandingPage.tsx` into section files when that cleanup is explicitly chosen
-- extract large hardcoded dashboard/profile config blocks into typed data modules if those surfaces continue to grow
+- extract large dashboard/profile/docs config blocks into typed data modules if those surfaces continue to grow

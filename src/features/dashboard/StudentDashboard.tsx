@@ -14,20 +14,17 @@ import {
   Flame,
   Layers3,
   Lock,
-  Menu,
   Sparkles,
   TerminalSquare,
   TrendingUp,
   UserCircle2,
   Waypoints,
-  X,
   type LucideIcon,
 } from 'lucide-react';
 import { motion, useInView } from 'motion/react';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChatProvider, useChatWidget } from '@/src/features/chat/ChatWidget';
-import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
-import { buildRoomHref } from '@/src/features/rooms/room-content';
+import YantraMobileMenu from '@/src/features/navigation/YantraMobileMenu';
 import {
   type DashboardRoomTextureKey,
   type DashboardSkillIconKey,
@@ -471,10 +468,7 @@ function SectionShell({
 function DashboardNav() {
   const { profile } = useDashboardData();
   const { openChat } = useChatWidget();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
-  useOverlayLock('dashboard-mobile-nav', mobileMenuOpen);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 18);
@@ -540,88 +534,25 @@ function DashboardNav() {
             </Link>
           </div>
 
-          <button
-            type="button"
-            className="text-white hoverable md:hidden"
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
+          <YantraMobileMenu
+            menuId="dashboard-mobile-nav"
+            title="Dashboard"
+            items={[
+              ...dashboardSectionLinks.map((link) => ({ label: link.label, href: link.href })),
+              { label: 'Docs', href: '/docs/first-dashboard-session' },
+              { label: 'Student Profile', href: '/dashboard/student-profile' },
+            ]}
+            footerItems={[
+              {
+                label: 'Open Yantra AI',
+                tone: 'primary',
+                action: () => openChat({ message: 'Help me continue learning from my current student dashboard context.' }),
+              },
+            ]}
+            triggerClassName="text-white hoverable md:hidden"
+          />
         </div>
       </motion.nav>
-
-      {mobileMenuOpen ? (
-        <motion.div
-          data-lenis-prevent
-          className="fixed inset-0 z-[70] flex flex-col overflow-y-auto bg-black/92 p-6 backdrop-blur-2xl md:hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <div className="flex justify-end">
-            <button
-              type="button"
-              className="p-2 text-white hoverable"
-              onClick={() => setMobileMenuOpen(false)}
-              aria-label="Close menu"
-            >
-              <X size={24} />
-            </button>
-          </div>
-
-          <div className="flex flex-1 flex-col items-center justify-center gap-6">
-            {dashboardSectionLinks.map((link, index) => (
-              <motion.a
-                key={link.label}
-                href={link.href}
-                data-no-route-loader="true"
-                className="font-display text-5xl font-medium tracking-tight text-white hoverable"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.08 }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </motion.a>
-            ))}
-
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
-              <Link
-                href="/docs/first-dashboard-session"
-                className="rounded-full border border-white/12 bg-white/[0.04] px-7 py-3 font-mono text-[11px] uppercase tracking-[0.24em] text-white hoverable"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Docs
-              </Link>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}>
-              <Link
-                href="/dashboard/student-profile"
-                className="rounded-full border border-white/12 bg-white/[0.04] px-7 py-3 font-mono text-[11px] uppercase tracking-[0.24em] text-white hoverable"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Student Profile
-              </Link>
-            </motion.div>
-
-            <motion.button
-              type="button"
-              className="mt-6 rounded-full bg-white px-7 py-3 font-mono text-[11px] uppercase tracking-[0.24em] text-black hoverable"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.36 }}
-              onClick={() => {
-                setMobileMenuOpen(false);
-                openChat({ message: 'Help me continue learning from my current student dashboard context.' });
-              }}
-            >
-              Open Yantra AI
-            </motion.button>
-          </div>
-        </motion.div>
-      ) : null}
     </>
   );
 }
@@ -1117,6 +1048,7 @@ function SkillCard({ skill, index }: { skill: StudentDashboardSkill; index: numb
 
 function RoomsSection() {
   const { rooms } = useDashboardData();
+  const { openChat } = useChatWidget();
 
   return (
     <SectionShell
@@ -1163,14 +1095,15 @@ function RoomsSection() {
               </div>
 
               <div className="mt-10 flex items-center justify-between gap-4">
-                <Link
-                  href={buildRoomHref(room.roomKey)}
+                <button
+                  type="button"
                   className={`rounded-full px-6 py-3 text-sm uppercase tracking-[0.18em] transition-colors hoverable ${
                     room.featured ? 'bg-white text-black hover:bg-white/92' : 'border border-white/12 bg-white/[0.05] text-white hover:bg-white/[0.08]'
                   }`}
+                  onClick={() => openChat({ message: room.prompt })}
                 >
                   {room.ctaLabel}
-                </Link>
+                </button>
 
                 <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
                   <span>AI-guided</span>

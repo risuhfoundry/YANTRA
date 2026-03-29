@@ -254,20 +254,6 @@ create table if not exists public.student_curriculum_nodes (
   primary key (user_id, node_key)
 );
 
-create table if not exists public.student_practice_rooms (
-  user_id uuid not null references auth.users (id) on delete cascade,
-  room_key text not null,
-  title text not null,
-  description text not null,
-  status_label text not null,
-  cta_label text not null,
-  prompt text not null,
-  featured boolean not null default false,
-  texture_key text not null check (texture_key in ('python-room', 'neural-builder', 'data-explorer', 'prompt-lab')),
-  sort_order integer not null default 0,
-  primary key (user_id, room_key)
-);
-
 create table if not exists public.student_weekly_activity (
   user_id uuid not null references auth.users (id) on delete cascade,
   day_key text not null,
@@ -282,7 +268,6 @@ create table if not exists public.student_weekly_activity (
 alter table public.student_dashboard_paths enable row level security;
 alter table public.student_skill_progress enable row level security;
 alter table public.student_curriculum_nodes enable row level security;
-alter table public.student_practice_rooms enable row level security;
 alter table public.student_weekly_activity enable row level security;
 
 drop policy if exists "Users can view their own dashboard path" on public.student_dashboard_paths;
@@ -346,28 +331,6 @@ with check ((select auth.uid()) = user_id);
 drop policy if exists "Users can update their own curriculum nodes" on public.student_curriculum_nodes;
 create policy "Users can update their own curriculum nodes"
 on public.student_curriculum_nodes
-for update
-to authenticated
-using ((select auth.uid()) = user_id)
-with check ((select auth.uid()) = user_id);
-
-drop policy if exists "Users can view their own practice rooms" on public.student_practice_rooms;
-create policy "Users can view their own practice rooms"
-on public.student_practice_rooms
-for select
-to authenticated
-using ((select auth.uid()) = user_id);
-
-drop policy if exists "Users can insert their own practice rooms" on public.student_practice_rooms;
-create policy "Users can insert their own practice rooms"
-on public.student_practice_rooms
-for insert
-to authenticated
-with check ((select auth.uid()) = user_id);
-
-drop policy if exists "Users can update their own practice rooms" on public.student_practice_rooms;
-create policy "Users can update their own practice rooms"
-on public.student_practice_rooms
 for update
 to authenticated
 using ((select auth.uid()) = user_id)

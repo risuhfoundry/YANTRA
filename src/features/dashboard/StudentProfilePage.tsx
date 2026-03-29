@@ -12,6 +12,7 @@ import {
   UserCircle2,
 } from 'lucide-react';
 import { startRouteTransition } from '@/src/features/motion/ExperienceProvider';
+import YantraMobileMenu from '@/src/features/navigation/YantraMobileMenu';
 import StudentProfileCard, { type StudentProfileCardHandle } from './StudentProfileCard';
 import YantraAmbientBackground from './YantraAmbientBackground';
 import { defaultStudentProfile, type StudentProfile } from './student-profile-model';
@@ -458,13 +459,26 @@ export default function StudentProfilePage({
           <Link href="/dashboard" className="font-display text-2xl font-bold tracking-tight text-white uppercase cursor-pointer">
             YANTRA
           </Link>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/78 transition-colors hover:bg-white/[0.08] cursor-pointer sm:px-4 sm:tracking-[0.18em]"
-          >
-            <Grid2x2 size={14} />
-            Back
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/78 transition-colors hover:bg-white/[0.08] cursor-pointer sm:px-4 sm:tracking-[0.18em]"
+            >
+              <Grid2x2 size={14} />
+              Back
+            </Link>
+            <YantraMobileMenu
+              menuId="student-profile-mobile-menu"
+              title="Student Profile"
+              items={[
+                { label: 'Home', href: '/' },
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Docs', href: '/docs/first-dashboard-session' },
+                { label: 'Profile', href: '/dashboard/student-profile' },
+              ]}
+              triggerClassName="text-white hoverable"
+            />
+          </div>
         </div>
       </header>
 

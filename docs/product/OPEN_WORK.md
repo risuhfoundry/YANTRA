@@ -4,25 +4,29 @@
 
 ### Foundation hardening
 
-- add tests for auth redirects, profile reads, and profile writes
-- persist access requests instead of only logging them
-- implement password reset
-- decide whether Google sign-in should be real or remain deferred
-- add basic monitoring and error reporting
+- add tests for auth redirects, onboarding writes, profile reads/writes, dashboard seeding, and API routes
+- add monitoring and error reporting for auth, chat, and docs support
+- harden deployment checks and post-deploy smoke validation
 
-### Dashboard data
+### Dashboard intelligence
 
-- replace hardcoded dashboard arrays with typed data contracts
-- connect dashboard progress and milestones to persistent learner state
+- replace seeded dashboard copy with real learner-adaptive state
+- connect progress, milestones, and recommendations to meaningful persistent learner activity
 - define room unlock and recommendation logic
-- replace static curriculum and performance sections with real models
+- replace demo curriculum and performance sections with real models
 
-### Chat continuity
+### Yantra chat and Support Desk
 
-- persist chat sessions for authenticated learners
-- add richer learner context to prompts
+- pass richer learner context into Yantra prompts
 - decide on streaming versus non-streaming responses
-- add operational visibility for chat failures
+- add operational visibility for chat and docs-support failures
+- decide whether Support Desk should stay ephemeral or gain persistence and escalation paths
+
+### Access and support operations
+
+- build an internal review workflow for `access_requests`
+- define support analytics or ticket handoff if docs support becomes a core channel
+- add clearer admissions or partner triage tooling
 
 ### Practice rooms
 
@@ -42,18 +46,18 @@
 
 ## Current Product Gaps
 
-- the learner identity layer exists, but onboarding is still thin
-- the dashboard feels personalized, but most data is static
-- the access pipeline exists, but requests are not stored or reviewed
-- the profile exists, but broader learner state does not
+- onboarding exists, but it is still a lean first-pass experience
+- the dashboard persists starter data, but it is not truly adaptive yet
+- the access pipeline persists requests, but no one can review them inside the product
+- docs support exists, but it is still a local docs-grounded support layer rather than a full customer-support system
 
 ## Current Engineering Gaps
 
 - no automated test suite
-- no persistent chat storage
 - no analytics or observability layer
-- no production access-request persistence
-- no content-management workflow
+- no internal access-request operations UI
+- no content-management workflow for docs or marketing content
+- no richer learner-memory or support-escalation system
 
 ## Cleanup Work That Needs Approval
 

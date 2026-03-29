@@ -7,7 +7,7 @@
 - Styling: Tailwind CSS v4 through `src/styles/globals.css`
 - Motion and scroll behavior: `motion` and `lenis`
 - Icons: `lucide-react`
-- Auth and data persistence: Supabase SSR + `@supabase/supabase-js`
+- Auth and persistence: Supabase SSR + `@supabase/supabase-js`
 - AI provider: Google Gemini through `@google/genai`
 - Deployment target: Vercel
 
@@ -15,61 +15,82 @@
 
 ### Marketing Site
 
-- Route: `/`
-- Entry: `app/page.tsx`
-- Main implementation: `src/features/marketing/MarketingLandingPage.tsx`
-- Responsibilities:
+- route: `/`
+- entry: `app/page.tsx`
+- main implementation: `src/features/marketing/MarketingLandingPage.tsx`
+- responsibilities:
   - public product narrative
   - access-request CTA surface
-  - signup/login entry points
-  - chat entry points
+  - signup/login/docs entry points
+  - Yantra chat entry points
 
-### Authentication
+### Authentication And Onboarding
 
-- Routes: `/login`, `/signup`, `/auth/confirm`, `/auth/reset-password`, `/auth/signout`
-- Main implementation: `src/features/auth/AuthExperience.tsx`
-- Responsibilities:
+- routes: `/login`, `/signup`, `/onboarding`, `/auth/confirm`, `/auth/reset-password`, `/reset-password`, `/auth/signout`
+- main implementations:
+  - `src/features/auth/AuthExperience.tsx`
+  - `src/features/auth/ResetPasswordExperience.tsx`
+  - `src/features/onboarding/RoleOnboardingExperience.tsx`
+- responsibilities:
   - email/password sign-in
   - email/password sign-up
+  - Google sign-in through Supabase OAuth
   - email verification redirect handling
   - password recovery and password update
+  - onboarding for new accounts
   - sign-out
   - redirecting authenticated users away from auth pages
 
+### Docs And Support
+
+- routes: `/docs`, `/docs/[slug]`
+- main implementation: `src/features/docs/`
+- responsibilities:
+  - standalone public docs/help center
+  - article-based support content
+  - local docs search
+  - separate Support Desk customer-care assistant
+
 ### Student Dashboard
 
-- Route: `/dashboard`
-- Entry: `app/dashboard/page.tsx`
-- Main implementation: `src/features/dashboard/StudentDashboard.tsx`
-- Responsibilities:
-  - protected student-facing dashboard shell
-  - display of learner name and email from authenticated profile data
-  - static presentation of progress, skills, curriculum, and rooms
-  - chat entry points
+- route: `/dashboard`
+- entry: `app/dashboard/page.tsx`
+- main implementation: `src/features/dashboard/StudentDashboard.tsx`
+- responsibilities:
+  - protected learner dashboard shell
+  - display of learner identity from authenticated profile data
+  - loading seeded persisted starter dashboard data
+  - Yantra chat entry points
 
 ### Student Profile
 
-- Route: `/dashboard/student-profile`
-- Entry: `app/dashboard/student-profile/page.tsx`
-- Main implementation: `src/features/dashboard/StudentProfilePage.tsx`
-- Responsibilities:
+- route: `/dashboard/student-profile`
+- entry: `app/dashboard/student-profile/page.tsx`
+- main implementation: `src/features/dashboard/StudentProfilePage.tsx`
+- responsibilities:
   - protected profile editing experience
   - loading current learner profile from Supabase
   - persisting edits through `/api/profile`
+  - linking into the docs/help system
 
 ### APIs
 
 - `POST /api/chat`
-  - validates and sanitizes recent chat messages
+  - validates and sanitizes recent Yantra chat messages
   - calls Gemini with the Yantra system prompt
+  - persists rolling chat history for authenticated users
 - `GET /api/chat/history`
-  - returns the authenticated learner's latest persisted conversation
+  - returns the authenticated learner's latest persisted Yantra conversation
 - `GET /api/profile`
   - returns the authenticated learner profile and seeded defaults
 - `PUT /api/profile`
   - validates profile input and upserts the authenticated learner profile
 - `POST /api/access-requests`
   - validates name/email/message and persists the request
+- `POST /api/docs-support`
+  - validates Support Desk messages
+  - builds docs-grounded context
+  - calls Gemini with the separate Support Desk prompt
 
 ## Auth And Session Boundary
 
@@ -92,6 +113,10 @@ Protected routes do not rely on client-only checks. `app/dashboard/page.tsx` and
 - `public.profiles`
 - `public.access_requests`
 - `public.chat_histories`
+- `public.student_dashboard_paths`
+- `public.student_skill_progress`
+- `public.student_curriculum_nodes`
+- `public.student_weekly_activity`
 
 ### `public.profiles` fields
 
@@ -102,10 +127,27 @@ Protected routes do not rely on client-only checks. `app/dashboard/page.tsx` and
 - `skill_level`
 - `progress`
 - `academic_year`
+- `user_role`
+- `age_range`
+- `primary_learning_goals`
+- `learning_pace`
+- `onboarding_completed`
+- `onboarding_completed_at`
 - `created_at`
 - `updated_at`
 
 The profile model is defined in the app as `StudentProfile` in `src/features/dashboard/student-profile-model.ts`. Writes are sanitized before persistence.
+
+### Dashboard starter-data tables
+
+The dashboard loader persists starter product data across:
+
+- `public.student_dashboard_paths`
+- `public.student_skill_progress`
+- `public.student_curriculum_nodes`
+- `public.student_weekly_activity`
+
+These tables make the dashboard load from Supabase instead of only local arrays, but the underlying product logic is still starter data rather than true adaptive learning state.
 
 ## Request Flows
 
@@ -117,12 +159,29 @@ The profile model is defined in the app as `StudentProfile` in `src/features/das
 4. `AuthExperience` submits `signInWithPassword()` from the browser client.
 5. On success, the client transitions to `/dashboard`.
 
+### Google sign-in flow
+
+1. User clicks the Google button on `/login` or `/signup`.
+2. `AuthExperience` calls `signInWithOAuth({ provider: 'google' })`.
+3. Supabase returns through `/auth/confirm` with an OAuth `code`.
+4. `/auth/confirm` exchanges the code for the session cookie.
+5. The route redirects to `/dashboard` or `/onboarding`, depending on the requested `next` path.
+
 ### Signup flow
 
 1. User opens `/signup`.
-2. `AuthExperience` calls `signUp()` with `emailRedirectTo` pointing to `/auth/confirm?next=/dashboard`.
+2. `AuthExperience` calls `signUp()` with `emailRedirectTo=/auth/confirm?next=/onboarding`.
 3. Supabase sends the confirmation email when email confirmation is enabled.
-4. `/auth/confirm` verifies the OTP and redirects into the app.
+4. `/auth/confirm` verifies the OTP and redirects into `/onboarding`.
+5. If Supabase returns a session immediately, the client routes straight to `/onboarding`.
+
+### Onboarding flow
+
+1. `/onboarding` requires an authenticated user.
+2. If the onboarding schema is unavailable, the route redirects to `/dashboard`.
+3. If onboarding is already complete, the route redirects to `/dashboard`.
+4. `RoleOnboardingExperience` collects role, age range, learning goals, and pace.
+5. The resulting state is stored in `public.profiles`.
 
 ### Password reset flow
 
@@ -135,10 +194,11 @@ The profile model is defined in the app as `StudentProfile` in `src/features/das
 ### Dashboard/profile load flow
 
 1. A protected route checks `hasSupabaseEnv()`.
-2. The route calls `getAuthenticatedProfile()`.
+2. The route calls `requireAuthenticatedProfile()`.
 3. If no session exists, the route redirects to `/login`.
 4. If the learner has no `profiles` row yet, the server inserts a seeded default row.
-5. The server component renders using the returned profile.
+5. `/dashboard` then calls `getAuthenticatedDashboardData()`.
+6. The dashboard loader queries the dashboard tables, seeds them if needed, and falls back gracefully when the schema is missing.
 
 ### Profile save flow
 
@@ -147,14 +207,21 @@ The profile model is defined in the app as `StudentProfile` in `src/features/das
 3. `updateAuthenticatedProfile()` upserts the row keyed by the authenticated user id.
 4. The updated profile is returned to the client.
 
-### Chat flow
+### Yantra chat flow
 
 1. Marketing and dashboard pages wrap their UI in `ChatProvider`.
 2. On first open, the provider tries to load `/api/chat/history`.
 3. Authenticated learners receive their last persisted conversation; public users keep the in-memory welcome state.
 4. The provider sends the most recent sanitized conversation to `/api/chat`.
 5. The route truncates model input to the last 12 messages, calls Gemini, and persists the updated rolling history for authenticated learners.
-6. Gemini responds using `gemini-2.5-flash` and the shared Yantra prompt.
+
+### Docs Support Desk flow
+
+1. Docs pages mount `DocsSupportWidget`.
+2. The widget posts recent support messages plus the current article slug to `/api/docs-support`.
+3. `docs-support.ts` ranks relevant docs sections from the local docs content source.
+4. The route sends the selected excerpts to Gemini with the separate Support Desk system prompt.
+5. The client renders the answer plus article source links.
 
 ## State Boundaries
 
@@ -163,33 +230,37 @@ The profile model is defined in the app as `StudentProfile` in `src/features/das
 - auth session
 - student profile row
 - access-request rows
-- authenticated chat history
+- authenticated Yantra chat history
+- starter dashboard rows
 
 ### Client-only
 
 - dashboard section state
 - mobile nav and panel open states
 - access-request form status
+- docs search query
+- docs support open/expand state
+- docs support conversation state
 
-### Static/demo data
+### Seeded or presentation-led
 
-- dashboard overview cards
-- skills
 - room cards
-- curriculum nodes
-- many marketing copy blocks
+- many dashboard recommendation phrases
+- marketing copy blocks
+- docs article content and support knowledge base
 
 ## Current Constraints
 
-- dashboard metrics are largely presentation data
-- Google sign-in is still a placeholder
-- chat continuity is limited to one rolling authenticated conversation
-- there is no test suite or monitoring layer
+- dashboard logic is seeded and starter-oriented, not truly adaptive
+- room cards are still preview surfaces
+- Yantra chat continuity is limited to one rolling authenticated conversation
+- Support Desk is grounded to local docs content only
+- there is no test suite, analytics layer, or monitoring stack yet
 
 ## Recommended Evolution
 
 - keep route wiring and API handlers in `app/`
 - keep surface-specific UI in `src/features/`
 - keep Supabase integration inside `src/lib/supabase/`
-- keep the current auth/profile foundation and extend from it instead of adding a second identity layer
-- add richer dashboard persistence, chat observability, and access-request review tooling before expanding the surface area further
+- keep Yantra and Support Desk as separate assistants with separate prompts and jobs
+- add richer dashboard intelligence, chat/support observability, and access-request review tooling before expanding product surface area further
