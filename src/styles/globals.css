@@ -89,12 +89,13 @@
   }
 }
 
-html.lenis {
-  scroll-behavior: auto;
-}
-
+html.lenis,
 html.lenis body {
   height: auto;
+}
+
+html.lenis {
+  scroll-behavior: auto;
 }
 
 .lenis.lenis-stopped {

@@ -472,7 +472,8 @@ function DashboardNav() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 18);
-    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 

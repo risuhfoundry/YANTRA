@@ -1,6 +1,6 @@
 'use client';
 
-import Lenis from 'lenis';
+import Lenis, { type LenisOptions } from 'lenis';
 import { useEffect, useRef } from 'react';
 
 type SmoothScrollControllerProps = {
@@ -9,46 +9,58 @@ type SmoothScrollControllerProps = {
 };
 
 const smoothEase = (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t));
+const touchPointerQuery = '(pointer: coarse), (hover: none)';
+const anchorOffset = 112;
+
+function createLenisOptions(isTouchLike: boolean): LenisOptions {
+  const baseOptions: LenisOptions = {
+    autoRaf: true,
+    autoResize: true,
+    orientation: 'vertical',
+    gestureOrientation: 'vertical',
+    smoothWheel: true,
+    overscroll: true,
+    anchors: {
+      offset: anchorOffset,
+      duration: isTouchLike ? 0.7 : 0.85,
+      easing: smoothEase,
+    },
+    stopInertiaOnNavigate: true,
+    prevent: (node) => node instanceof HTMLElement && Boolean(node.closest('[data-lenis-prevent]')),
+    virtualScroll: ({ event }) => !(event instanceof WheelEvent && event.ctrlKey),
+  };
+
+  if (isTouchLike) {
+    return {
+      ...baseOptions,
+      syncTouch: true,
+      lerp: 0.16,
+      syncTouchLerp: 0.12,
+      touchInertiaExponent: 1.35,
+      wheelMultiplier: 1,
+      touchMultiplier: 1,
+    };
+  }
+
+  return {
+    ...baseOptions,
+    syncTouch: false,
+    lerp: 0.14,
+    wheelMultiplier: 0.95,
+    touchMultiplier: 1,
+  };
+}
 
 export default function SmoothScrollController({
   reducedMotion,
   isOverlayActive,
 }: SmoothScrollControllerProps) {
   const lenisRef = useRef<Lenis | null>(null);
+  const overlayActiveRef = useRef(isOverlayActive);
 
   useEffect(() => {
-    if (reducedMotion) {
-      lenisRef.current?.destroy();
-      lenisRef.current = null;
-      return;
-    }
+    overlayActiveRef.current = isOverlayActive;
 
-    const lenis = new Lenis({
-      autoRaf: true,
-      duration: 1.05,
-      easing: smoothEase,
-      smoothWheel: true,
-      syncTouch: false,
-      wheelMultiplier: 0.92,
-      touchMultiplier: 1.05,
-      anchors: true,
-      stopInertiaOnNavigate: true,
-      prevent: (node) => node instanceof HTMLElement && Boolean(node.closest('[data-lenis-prevent]')),
-    });
-
-    lenisRef.current = lenis;
-
-    if (isOverlayActive) {
-      lenis.stop();
-    }
-
-    return () => {
-      lenis.destroy();
-      lenisRef.current = null;
-    };
-  }, [isOverlayActive, reducedMotion]);
-
-  useEffect(() => {
     if (!lenisRef.current) {
       return;
     }
@@ -60,6 +72,47 @@ export default function SmoothScrollController({
 
     lenisRef.current.start();
   }, [isOverlayActive]);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      lenisRef.current?.destroy();
+      lenisRef.current = null;
+      return;
+    }
+
+    const pointerMedia = window.matchMedia(touchPointerQuery);
+    const viewport = window.visualViewport;
+
+    const rebuildLenis = () => {
+      lenisRef.current?.destroy();
+
+      const lenis = new Lenis(createLenisOptions(pointerMedia.matches));
+      lenisRef.current = lenis;
+
+      if (overlayActiveRef.current) {
+        lenis.stop();
+      }
+    };
+
+    const handleViewportChange = () => {
+      lenisRef.current?.resize();
+    };
+
+    rebuildLenis();
+    pointerMedia.addEventListener('change', rebuildLenis);
+    window.addEventListener('resize', handleViewportChange, { passive: true });
+    window.addEventListener('orientationchange', handleViewportChange);
+    viewport?.addEventListener('resize', handleViewportChange);
+
+    return () => {
+      pointerMedia.removeEventListener('change', rebuildLenis);
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('orientationchange', handleViewportChange);
+      viewport?.removeEventListener('resize', handleViewportChange);
+      lenisRef.current?.destroy();
+      lenisRef.current = null;
+    };
+  }, [reducedMotion]);
 
   return null;
 }
