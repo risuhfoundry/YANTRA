@@ -195,3 +195,34 @@ def test_provider_ring_reports_missing_credentials() -> None:
         )
 
     assert "no upstream api keys" in str(exc.value).lower()
+
+
+def test_provider_ring_continues_after_non_retryable_lane_error() -> None:
+    settings = replace(
+        _build_settings(),
+        provider_chain=("groq_primary", "gemini_primary"),
+        provider_max_attempts=2,
+    )
+    clients = {
+        "groq_primary": FakeLaneClient(
+            [
+                ProviderError(
+                    "forbidden",
+                    provider="groq",
+                    lane_name="groq_primary",
+                    retryable=False,
+                    status_code=403,
+                )
+            ]
+        ),
+        "gemini_primary": FakeLaneClient(["Gemini fallback succeeded."]),
+    }
+    router = ProviderRingRouter(settings, lane_clients=clients)
+
+    result = router.generate(
+        system_prompt="You are Yantra.",
+        messages=[Message(role="user", content="Hello")],
+    )
+
+    assert result.lane_name == "gemini_primary"
+    assert result.text == "Gemini fallback succeeded."

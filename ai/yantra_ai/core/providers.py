@@ -271,9 +271,8 @@ class ProviderRingRouter:
                 attempts.append(exc)
                 if exc.retryable:
                     self._cooldowns[lane.name] = monotonic() + self.settings.provider_lane_cooldown_s
-                    index = (index + 1) % len(lane_names)
-                    continue
-                break
+                index = (index + 1) % len(lane_names)
+                continue
 
             self._cooldowns.pop(lane.name, None)
             return ProviderResult(
