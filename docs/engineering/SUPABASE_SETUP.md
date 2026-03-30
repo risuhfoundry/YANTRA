@@ -8,14 +8,9 @@ Yantra uses Supabase for:
 - protected dashboard access
 - persisted learner profiles in `public.profiles`
 - persisted public access requests in `public.access_requests`
-- authenticated chat continuity in `public.chat_histories`
+- authenticated Yantra chat continuity in `public.chat_histories`
+- seeded persisted dashboard starter data in dedicated dashboard tables
 
-- user sign up
-- user sign in
-- auth session cookies
-- protected dashboard routes
-- persisted student profile records
-- onboarding role selection before dashboard access
 ## Required Environment Variables
 
 Add these to `.env.local`:
@@ -26,7 +21,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
 GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
 ```
 
-`GEMINI_API_KEY` is not part of Supabase itself, but most local testing will need it because chat is one of the active runtime features.
+`GEMINI_API_KEY` is not part of Supabase itself, but most local testing will need it because both Yantra chat and docs support use Gemini.
 
 ## SQL Setup
 
@@ -34,17 +29,20 @@ Run:
 
 - `supabase/schema.sql`
 
-That script creates:
+That script creates or updates:
 
 - `public.profiles`
 - `public.access_requests`
 - `public.chat_histories`
-- the `set_profiles_updated_at()` trigger function
-- the `set_profiles_updated_at` trigger
-- the `set_chat_histories_updated_at()` trigger function
-- the `set_chat_histories_updated_at` trigger
+- `public.student_dashboard_paths`
+- `public.student_skill_progress`
+- `public.student_curriculum_nodes`
+- `public.student_weekly_activity`
+- the `set_profiles_updated_at()` trigger function and trigger
+- the `set_chat_histories_updated_at()` trigger function and trigger
 - row-level security policies so authenticated users can only view and update their own profile row
 - row-level security policies so authenticated users can only read and update their own chat history
+- row-level security policies so authenticated users can only read and update their own seeded dashboard rows
 - row-level security policies so anonymous visitors can submit access requests
 
 ## Current Profile Schema
@@ -58,29 +56,49 @@ That script creates:
 - `skill_level text`
 - `progress integer`
 - `academic_year text`
+- `user_role text`
+- `age_range text`
+- `primary_learning_goals text[]`
+- `learning_pace text`
+- `onboarding_completed boolean`
+- `onboarding_completed_at timestamptz`
 - `created_at timestamptz`
 - `updated_at timestamptz`
 
 The app maps that table to the `StudentProfile` type in `src/features/dashboard/student-profile-model.ts`.
+
+## Dashboard Tables
+
+`supabase/schema.sql` also defines the starter dashboard persistence layer:
+
+- `public.student_dashboard_paths`
+- `public.student_skill_progress`
+- `public.student_curriculum_nodes`
+- `public.student_weekly_activity`
+
+The app loads those tables through `src/lib/supabase/dashboard.ts` and seeds starter content when rows are missing.
 
 ## App Integration Points
 
 ### Browser auth
 
 - `src/lib/supabase/client.ts`
-- used by `src/features/auth/AuthExperience.tsx`
+- used by `src/features/auth/AuthExperience.tsx` and reset/onboarding flows
 
-### Server auth and profile access
+### Server auth and persistence access
 
 - `src/lib/supabase/server.ts`
 - `src/lib/supabase/profiles.ts`
+- `src/lib/supabase/dashboard.ts`
+- `src/lib/supabase/chat-history.ts`
+- `src/lib/supabase/access-requests.ts`
 
 ### Session refresh
 
 - `proxy.ts`
 - `src/lib/supabase/proxy.ts`
 
-These files are all part of the active runtime. If auth stops behaving correctly, inspect them first.
+These files are all part of the active runtime. If auth or persistence stops behaving correctly, inspect them first.
 
 ## Auth URLs To Configure In Supabase
 
@@ -88,21 +106,18 @@ Inside Supabase Auth settings:
 
 ### Site URL
 
-- local: `http://localhost:3000`
-- production: your Vercel or custom domain
+Use your production site URL once deployed:
 
-- `/signup` creates a Supabase account
-- `/onboarding` collects the user's Yantra role before the main dashboard opens
-- `/login` signs the user in
-- `/dashboard` redirects to `/login` if no valid session exists
-- `/dashboard` opens for any authenticated user, while onboarding is shown from the new-account flow
-- `/dashboard/student-profile` reads and saves the current learner profile from Supabase instead of local browser storage
+- `https://YOUR-PRODUCTION-DOMAIN`
+
 ### Redirect URLs
 
-- `http://localhost:3000/auth/confirm**`
-- `http://localhost:3000/auth/reset-password**`
-- `https://YOUR-PRODUCTION-DOMAIN/auth/confirm**`
-- `https://YOUR-PRODUCTION-DOMAIN/auth/reset-password**`
+Keep both local and production redirects:
+
+- `http://localhost:3000/auth/confirm`
+- `http://localhost:3000/auth/reset-password`
+- `https://YOUR-PRODUCTION-DOMAIN/auth/confirm`
+- `https://YOUR-PRODUCTION-DOMAIN/auth/reset-password`
 
 ## What The App Does With Supabase
 
@@ -120,17 +135,17 @@ Inside Supabase Auth settings:
 - redirects authenticated users to `/dashboard`
 - triggers `resetPasswordForEmail()` from the forgot-password action
 
+### `/onboarding`
+
+- requires an authenticated user
+- reads the current profile
+- stores role, age range, learning goals, learning pace, and onboarding completion in `public.profiles`
+
 ### `/auth/reset-password`
 
 - completes the password-recovery flow
 - updates the current user password through `updateUser({ password })`
 - signs the recovery session out and redirects back to `/login`
-
-### `/dashboard`
-
-- requires a valid authenticated user
-- redirects to `/login` when no session exists
-- loads the current profile through `getAuthenticatedProfile()`
 
 ### `/auth/confirm`
 
@@ -139,6 +154,13 @@ Inside Supabase Auth settings:
 - redirects to the `next` path from the auth URL
 - routes new-account confirmations to `/onboarding`
 - routes login and returning auth flows to `/dashboard`
+
+### `/dashboard`
+
+- requires a valid authenticated user
+- redirects to `/login` when no session exists
+- loads the current profile through `getAuthenticatedProfile()`
+- loads or seeds starter dashboard rows through `getAuthenticatedDashboardData()`
 
 ### `/dashboard/student-profile`
 
@@ -157,10 +179,10 @@ Inside Supabase Auth settings:
 
 ### `/api/chat/history`
 
-- returns the authenticated learner's persisted conversation history
+- returns the authenticated learner's persisted Yantra conversation history
 - falls back to empty history when no row exists yet
 
-## First-Time Profile Behavior
+## First-Time Profile And Dashboard Behavior
 
 The app seeds a profile automatically the first time an authenticated learner loads a protected route that calls `getAuthenticatedProfile()`.
 
@@ -170,7 +192,7 @@ The seeded values come from:
 - otherwise the email prefix
 - otherwise `defaultStudentProfile`
 
-The row is sanitized before insert and update.
+`/dashboard` then loads the dashboard starter-data tables. If rows are missing, the app inserts starter content and reloads it.
 
 ## First Live Test Flow
 
@@ -182,28 +204,21 @@ The row is sanitized before insert and update.
 6. Open `/signup` and create an account.
 7. Confirm the email if email confirmation is enabled.
 8. Confirm you land on `/onboarding` for the new account.
-9. Complete the `/onboarding` role selection screen.
+9. Complete the `/onboarding` flow.
 10. Open `/dashboard`.
-11. Sign out, open `/login`, and confirm the same account returns to `/dashboard` without onboarding.
+11. Reload `/dashboard` and confirm the seeded starter dashboard still renders.
 12. Open `/dashboard/student-profile`, edit the record, and save it.
 13. Reload and confirm the updated profile persisted.
 14. Open `/login`, request a password reset, and verify the recovery page lets you set a new password.
-15. Test Google sign-in from `/login` or `/signup` after the Google provider is enabled in Supabase.
+15. Enable the Google provider in Supabase and test Google sign-in from `/login` or `/signup`.
 16. Open the chat as an authenticated learner, send a message, reload, and confirm the conversation resumes.
+17. Submit the landing-page access form and confirm the record lands in `public.access_requests`.
 
 ## Known Gaps
 
-- dashboard metrics and most learning-state models are still demo content
-
-## Onboarding Columns
-
-The `profiles` table now also stores:
-
-- `user_role`
-- `onboarding_completed`
-- `onboarding_completed_at`
-
-Re-run `supabase/schema.sql` against an existing project to add these columns if your table was created before onboarding was introduced.
+- the dashboard tables currently hold seeded starter data, not a true adaptive engine
+- access requests persist but have no internal review UI
+- Support Desk uses local docs content and Gemini, not Supabase
 
 ## Production Checklist
 
@@ -212,6 +227,6 @@ Re-run `supabase/schema.sql` against an existing project to add these columns if
 3. Add `GEMINI_API_KEY` in Vercel.
 4. Apply `supabase/schema.sql` to the production Supabase project.
 5. Update Supabase Site URL to the production domain.
-6. Add the production `/auth/confirm**` and `/auth/reset-password**` URLs to Redirect URLs.
+6. Add the production `/auth/confirm` and `/auth/reset-password` URLs to Redirect URLs.
 7. In Supabase Auth, enable the Google provider and add the Google OAuth client ID and secret.
-8. In Google Cloud, add your Supabase project callback URL from the Google provider setup screen as an authorized redirect URI.
+8. In Google Cloud, add the exact Supabase Google callback URL from the provider setup screen as an authorized redirect URI.

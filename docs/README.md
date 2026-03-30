@@ -2,7 +2,7 @@
 
 This folder is the operating handbook for the live Yantra codebase.
 
-Use it to understand what is actually implemented now, what is still placeholder, and where new work should land.
+Use it to understand what is actually implemented now, what is seeded but limited, and what still belongs to future product work.
 
 ## What Is In This Folder
 
@@ -13,20 +13,22 @@ Use it to understand what is actually implemented now, what is still placeholder
 - `engineering/CODEBASE_MAP.md`
   Route-by-route and folder-by-folder map of the active codebase.
 - `engineering/SETUP_AND_DEPLOYMENT.md`
-  Local setup, environment variables, validation commands, and deployment guidance.
+  Local setup, environment variables, smoke tests, and deployment guidance.
 - `engineering/SUPABASE_SETUP.md`
-  Supabase auth setup, schema application, redirect configuration, and profile flow details.
+  Supabase auth setup, schema application, redirect configuration, OAuth setup, and persistence details.
 - `engineering/WORKFLOW.md`
   Repo working rules, safe change categories, and contribution expectations.
 
 ### Features
 
 - `features/MARKETING_SITE.md`
-  What the landing page actually contains, including access and account-entry flows.
+  What the landing page actually contains, including account entry, access requests, docs entry, and chat entry.
 - `features/DASHBOARD.md`
-  What the protected dashboard and student profile pages do today.
+  What the protected dashboard and student profile do today, including the seeded dashboard data layer.
 - `features/CHAT_SYSTEM.md`
-  How the chat widget, prompt layer, and `/api/chat` route work.
+  How the main Yantra assistant works across the marketing site and dashboard.
+- `features/DOCS_SYSTEM.md`
+  How the standalone docs/help center and the separate Support Desk assistant work.
 
 ### Product
 
@@ -36,11 +38,8 @@ Use it to understand what is actually implemented now, what is still placeholder
   What has already moved from roadmap into implementation, and what still belongs to future phases.
 - `product/OPEN_WORK.md`
   Concrete unfinished product and engineering work.
-
-### Schemas
-
-- `schemas/YANTRA_ROOM_SCHEMA.md`
-  Shared room schema for Yantra practice rooms, including field extensions and an example room object.
+- `product/ROOMS_BUILD_PLAN.md`
+  Approved 7-day build sequence for the first real Yantra Python Room.
 
 ### Handoff
 
@@ -67,24 +66,28 @@ Use it to understand what is actually implemented now, what is still placeholder
 Yantra now has:
 
 - a public marketing surface
-- login and signup flows
+- login, signup, onboarding, password reset, and Google sign-in flows
+- a public docs/help center with article pages and a separate Support Desk assistant
 - Supabase-backed protected dashboard routes
-- a persisted `profiles` table for the student profile
-- Gemini-backed chat
+- a persisted learner profile in `public.profiles`
+- persisted starter dashboard data in dedicated dashboard tables
+- Gemini-backed Yantra chat with authenticated history restore
+- persisted public access requests
 
 Yantra still does not have:
 
-- real learning-path generation
-- persistent chat sessions
-- production-grade access-request storage
-- actual practice-room engines
-- analytics, teacher tools, or institution workflows
+- real adaptive learning-path generation
+- live room execution engines
+- analytics, observability, or moderation tooling
+- an internal review UI for access requests
+- teacher, institution, certification, or hiring workflows
+- multi-thread or long-horizon learner memory beyond the current rolling chat history
 
-The docs should reflect that distinction clearly. Avoid describing roadmap ideas as already shipped.
+The docs in this folder should reflect that distinction clearly. Avoid describing seeded content, polished UI shells, or roadmap ideas as if they are already intelligent product systems.
 
 ## Documentation Rules
 
 - Treat this folder as the first source of truth for repo context.
-- Update docs in the same change whenever routes, auth behavior, environment setup, APIs, or architecture change.
-- Distinguish between live behavior, placeholder UI, and future work.
+- Update docs in the same change whenever routes, auth behavior, environment setup, APIs, persistence, or architecture change.
+- Distinguish between live behavior, seeded starter data, placeholder UI, and future work.
 - Keep reference assets under `docs/reference/`; do not delete or relocate them without approval.

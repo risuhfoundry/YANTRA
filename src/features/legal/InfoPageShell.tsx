@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import YantraMobileMenu from '@/src/features/navigation/YantraMobileMenu';
 
 type InfoSection = {
   title: string;
@@ -33,7 +34,7 @@ export default function InfoPageShell({
             YANTRA<span className="text-white/45">.</span>
           </Link>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="hidden flex-wrap items-center gap-3 md:flex">
             <Link
               href="/"
               className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/62 transition-colors hover:bg-white/[0.08] hover:text-white"
@@ -47,6 +48,17 @@ export default function InfoPageShell({
               Log In
             </Link>
           </div>
+          <YantraMobileMenu
+            menuId="legal-mobile-menu"
+            title="Yantra"
+            items={[
+              { label: 'Home', href: '/' },
+              { label: 'Docs', href: '/docs' },
+              { label: 'Login', href: '/login' },
+              { label: 'Signup', href: '/signup' },
+            ]}
+            triggerClassName="text-white hoverable md:hidden"
+          />
         </div>
       </header>
 

@@ -14,7 +14,6 @@ import {
   Flame,
   Layers3,
   Lock,
-  Menu,
   Sparkles,
   TerminalSquare,
   TrendingUp,
@@ -25,9 +24,7 @@ import {
 import { motion, useInView } from 'motion/react';
 import { createContext, memo, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChatProvider, useChatWidgetActions } from '@/src/features/chat/ChatWidget';
-import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
 import { useScrollThreshold } from '@/src/features/motion/useScrollThreshold';
-import { buildRoomHref } from '@/src/features/rooms/room-content';
 import YantraMobileMenu from '@/src/features/navigation/YantraMobileMenu';
 import {
   type DashboardRoomTextureKey,
@@ -413,6 +410,14 @@ const roomTextureMap: Record<DashboardRoomTextureKey, string> = {
     'radial-gradient(circle at 30% 18%, rgba(255,255,255,0.08), transparent 26%), linear-gradient(150deg, rgba(9,9,9,0.96), rgba(20,20,20,0.84) 50%, rgba(11,11,13,0.98) 100%)',
 };
 
+function buildRoomHref(roomKey: string) {
+  if (roomKey === 'python-room') {
+    return '/dashboard/rooms/python';
+  }
+
+  return null;
+}
+
 function useDashboardData() {
   const context = useContext(DashboardDataContext);
 
@@ -472,10 +477,7 @@ function SectionShell({
 function DashboardNav() {
   const { profile } = useDashboardData();
   const { openChat } = useChatWidgetActions();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const scrolled = useScrollThreshold(18);
-
-  useOverlayLock('dashboard-mobile-nav', mobileMenuOpen);
 
   return (
     <>
@@ -535,25 +537,25 @@ function DashboardNav() {
             </Link>
           </div>
 
-          <button
-            type="button"
-            className="text-white hoverable md:hidden"
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
+          <YantraMobileMenu
+            menuId="dashboard-mobile-nav"
+            title="Dashboard"
+            items={[
+              ...dashboardSectionLinks.map((link) => ({ label: link.label, href: link.href })),
+              { label: 'Docs', href: '/docs/first-dashboard-session' },
+              { label: 'Student Profile', href: '/dashboard/student-profile' },
+            ]}
+            footerItems={[
+              {
+                label: 'Open Yantra AI',
+                tone: 'primary',
+                action: () => openChat({ message: 'Help me continue learning from my current student dashboard context.' }),
+              },
+            ]}
+            triggerClassName="text-white hoverable md:hidden"
+          />
         </div>
       </motion.nav>
-
-      <YantraMobileMenu
-        isOpen={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-        links={dashboardSectionLinks}
-        docsHref="/docs/first-dashboard-session"
-        profileHref="/dashboard/student-profile"
-        onOpenChat={() => openChat({ message: 'Help me continue learning from my current student dashboard context.' })}
-      />
     </>
   );
 }
@@ -1050,6 +1052,9 @@ const SkillCard = memo(function SkillCard({ skill, index }: { skill: StudentDash
 SkillCard.displayName = 'SkillCard';
 
 const RoomCard = memo(function RoomCard({ room, index }: { room: StudentDashboardRoom; index: number }) {
+  const { openChat } = useChatWidgetActions();
+  const roomHref = buildRoomHref(room.roomKey);
+
   return (
     <motion.article
       className={`relative overflow-hidden rounded-[2rem] border border-white/8 p-8 backdrop-blur-[20px] ${
@@ -1085,14 +1090,26 @@ const RoomCard = memo(function RoomCard({ room, index }: { room: StudentDashboar
         </div>
 
         <div className="mt-10 flex items-center justify-between gap-4">
-          <Link
-            href={buildRoomHref(room.roomKey)}
-            className={`rounded-full px-6 py-3 text-sm uppercase tracking-[0.18em] transition-colors hoverable ${
-              room.featured ? 'bg-white text-black hover:bg-white/92' : 'border border-white/12 bg-white/[0.05] text-white hover:bg-white/[0.08]'
-            }`}
-          >
-            {room.ctaLabel}
-          </Link>
+          {roomHref ? (
+            <Link
+              href={roomHref}
+              className={`rounded-full px-6 py-3 text-sm uppercase tracking-[0.18em] transition-colors hoverable ${
+                room.featured ? 'bg-white text-black hover:bg-white/92' : 'border border-white/12 bg-white/[0.05] text-white hover:bg-white/[0.08]'
+              }`}
+            >
+              {room.ctaLabel}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={`rounded-full px-6 py-3 text-sm uppercase tracking-[0.18em] transition-colors hoverable ${
+                room.featured ? 'bg-white text-black hover:bg-white/92' : 'border border-white/12 bg-white/[0.05] text-white hover:bg-white/[0.08]'
+              }`}
+              onClick={() => openChat({ message: room.prompt })}
+            >
+              {room.ctaLabel}
+            </button>
+          )}
 
           <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
             <span>AI-guided</span>

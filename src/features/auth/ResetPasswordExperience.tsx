@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Orbit, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import YantraMobileMenu from '@/src/features/navigation/YantraMobileMenu';
 import { startRouteTransition } from '@/src/features/motion/ExperienceProvider';
 import { createClient as createSupabaseBrowserClient, createTransientClient } from '@/src/lib/supabase/client';
 
@@ -294,10 +295,22 @@ export default function ResetPasswordExperience({
 
           <Link
             href="/login"
-            className="hoverable rounded-full border border-white/10 bg-white/[0.04] px-5 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-white/72 transition-colors hover:bg-white/[0.08]"
+            className="hidden rounded-full border border-white/10 bg-white/[0.04] px-5 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-white/72 transition-colors hover:bg-white/[0.08] hoverable md:inline-flex"
           >
             Back to Login
           </Link>
+          <YantraMobileMenu
+            menuId="reset-password-mobile-menu"
+            title="Reset Password"
+            items={[
+              { label: 'Home', href: '/' },
+              { label: 'Docs', href: '/docs' },
+              { label: 'Login', href: '/login' },
+              { label: 'Signup', href: '/signup' },
+            ]}
+            footerItems={[{ label: 'Back to Login', href: '/login', tone: 'primary' }]}
+            triggerClassName="text-white hoverable md:hidden"
+          />
         </div>
       </header>
 
