@@ -46,6 +46,7 @@ class Settings:
     retrieval_cache_max_entries: int
     response_cache_ttl_s: int
     response_cache_max_entries: int
+    startup_warmup: bool
     auto_reindex: bool
     top_k: int
     min_retrieval_score: float
@@ -110,6 +111,20 @@ def get_settings() -> Settings:
         if item.strip()
     )
 
+    embedding_backend = os.getenv("YANTRA_EMBEDDING_BACKEND")
+    if embedding_backend:
+        resolved_embedding_backend = embedding_backend.lower()
+    elif os.getenv("RENDER") or os.getenv("RENDER_SERVICE_ID"):
+        resolved_embedding_backend = "lexical"
+    else:
+        resolved_embedding_backend = "local"
+
+    startup_warmup_env = os.getenv("YANTRA_STARTUP_WARMUP")
+    if startup_warmup_env is not None:
+        startup_warmup = startup_warmup_env.lower() in {"1", "true", "yes", "on"}
+    else:
+        startup_warmup = not (os.getenv("RENDER") or os.getenv("RENDER_SERVICE_ID"))
+
     return Settings(
         base_dir=base_dir,
         data_dir=data_dir,
@@ -134,7 +149,7 @@ def get_settings() -> Settings:
         gemini_secondary_api_key=os.getenv("YANTRA_GEMINI_SECONDARY_API_KEY"),
         github_models_model=os.getenv("YANTRA_GITHUB_MODELS_MODEL", "openai/gpt-4.1"),
         github_models_token=os.getenv("YANTRA_GITHUB_MODELS_TOKEN"),
-        embedding_backend=os.getenv("YANTRA_EMBEDDING_BACKEND", "local").lower(),
+        embedding_backend=resolved_embedding_backend,
         local_embedding_model=os.getenv(
             "YANTRA_LOCAL_EMBEDDING_MODEL",
             "sentence-transformers/all-MiniLM-L6-v2",
@@ -150,6 +165,7 @@ def get_settings() -> Settings:
         retrieval_cache_max_entries=int(os.getenv("YANTRA_RETRIEVAL_CACHE_MAX_ENTRIES", "256")),
         response_cache_ttl_s=int(os.getenv("YANTRA_RESPONSE_CACHE_TTL_S", "120")),
         response_cache_max_entries=int(os.getenv("YANTRA_RESPONSE_CACHE_MAX_ENTRIES", "256")),
+        startup_warmup=startup_warmup,
         auto_reindex=os.getenv("YANTRA_AUTO_REINDEX", "true").lower() in {"1", "true", "yes", "on"},
         top_k=int(os.getenv("YANTRA_TOP_K", "2")),
         min_retrieval_score=float(os.getenv("YANTRA_MIN_RETRIEVAL_SCORE", "0.3")),

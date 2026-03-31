@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 async def lifespan(_: FastAPI):
     settings = get_settings()
 
+    if not settings.startup_warmup:
+        yield
+        return
+
     try:
         warmup_retrieval(settings)
     except Exception as exc:  # pragma: no cover - startup fallback only
