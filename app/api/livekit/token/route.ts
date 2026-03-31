@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { AccessToken, AgentDispatchClient, RoomServiceClient } from 'livekit-server-sdk';
+import { AccessToken, RoomAgentDispatch, RoomConfiguration } from 'livekit-server-sdk';
 import { getAuthenticatedProfile } from '@/src/lib/supabase/profiles';
 
 export const runtime = 'nodejs';
@@ -17,10 +17,6 @@ function requireEnv(name: string) {
   }
 
   return value;
-}
-
-function toApiHost(livekitUrl: string) {
-  return livekitUrl.replace(/^wss:/i, 'https:').replace(/^ws:/i, 'http:');
 }
 
 function sanitizeSegment(value: string) {
@@ -55,37 +51,8 @@ export async function POST(request: Request) {
     const livekitApiKey = requireEnv('LIVEKIT_API_KEY');
     const livekitApiSecret = requireEnv('LIVEKIT_API_SECRET');
     const agentName = process.env.YANTRA_LIVEKIT_AGENT_NAME?.trim() || 'yantra-terminal-voice';
-    const apiHost = toApiHost(livekitUrl);
     const sessionKey = buildSessionKey();
     const roomName = buildRoomName(roomKey, auth.user.id, sessionKey);
-    const roomService = new RoomServiceClient(apiHost, livekitApiKey, livekitApiSecret);
-    const dispatchClient = new AgentDispatchClient(apiHost, livekitApiKey, livekitApiSecret);
-
-    try {
-      await roomService.createRoom({
-        name: roomName,
-        emptyTimeout: 60 * 8,
-        departureTimeout: 60 * 2,
-        maxParticipants: 4,
-        metadata: JSON.stringify({
-          roomKey,
-          roomLabel,
-          learnerId: auth.user.id,
-          sessionKey,
-        }),
-      });
-    } catch {
-      // Each launch uses a fresh room name, but handle collisions defensively.
-    }
-    await dispatchClient.createDispatch(roomName, agentName, {
-      metadata: JSON.stringify({
-        roomKey,
-        roomLabel,
-        learnerName: auth.profile.name,
-        currentPath: auth.profile.primaryLearningGoals?.[0] || 'AI Foundations',
-        sessionKey,
-      }),
-    });
 
     const participantIdentity = buildParticipantIdentity(auth.user.id);
     const token = new AccessToken(livekitApiKey, livekitApiSecret, {
@@ -107,6 +74,33 @@ export async function POST(request: Request) {
       canPublish: true,
       canSubscribe: true,
       canPublishData: true,
+    });
+
+    token.roomConfig = new RoomConfiguration({
+      name: roomName,
+      emptyTimeout: 60 * 8,
+      departureTimeout: 60 * 2,
+      maxParticipants: 4,
+      metadata: JSON.stringify({
+        roomKey,
+        roomLabel,
+        learnerId: auth.user.id,
+        learnerName: auth.profile.name,
+        currentPath: auth.profile.primaryLearningGoals?.[0] || 'AI Foundations',
+        sessionKey,
+      }),
+      agents: [
+        new RoomAgentDispatch({
+          agentName,
+          metadata: JSON.stringify({
+            roomKey,
+            roomLabel,
+            learnerName: auth.profile.name,
+            currentPath: auth.profile.primaryLearningGoals?.[0] || 'AI Foundations',
+            sessionKey,
+          }),
+        }),
+      ],
     });
 
     return NextResponse.json({

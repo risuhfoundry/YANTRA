@@ -30,6 +30,7 @@ type YantraAiServiceResponse = {
 
 const DEFAULT_TOP_K = 3;
 const DEFAULT_SERVICE_TIMEOUT_MS = 65000;
+const DEFAULT_LOCAL_AI_SERVICE_URL = 'http://127.0.0.1:8000';
 
 function toGeminiContent(message: YantraChatMessage): Content {
   return {
@@ -38,9 +39,21 @@ function toGeminiContent(message: YantraChatMessage): Content {
   };
 }
 
+function normalizeServiceUrl(rawUrl?: string | null) {
+  const value = rawUrl?.trim();
+  return value ? value.replace(/\/+$/, '') : null;
+}
+
+function getYantraAiTarget() {
+  return process.env.YANTRA_AI_TARGET?.trim().toLowerCase() === 'render' ? 'render' : 'local';
+}
+
 function getYantraAiServiceUrl() {
-  const rawUrl = process.env.YANTRA_AI_SERVICE_URL?.trim();
-  return rawUrl ? rawUrl.replace(/\/+$/, '') : null;
+  if (getYantraAiTarget() === 'render') {
+    return normalizeServiceUrl(process.env.YANTRA_AI_RENDER_URL || process.env.YANTRA_AI_SERVICE_URL);
+  }
+
+  return normalizeServiceUrl(process.env.YANTRA_AI_LOCAL_URL) || DEFAULT_LOCAL_AI_SERVICE_URL;
 }
 
 function getYantraAiServiceTimeoutMs() {

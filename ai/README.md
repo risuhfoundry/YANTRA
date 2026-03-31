@@ -77,6 +77,10 @@ Set these env vars in `.env`:
 LIVEKIT_URL=...
 LIVEKIT_API_KEY=...
 LIVEKIT_API_SECRET=...
+YANTRA_AI_TARGET=local
+YANTRA_AI_LOCAL_URL=http://127.0.0.1:8000
+YANTRA_AI_RENDER_URL=https://yantra-ai.onrender.com
+YANTRA_LIVEKIT_AI_TARGET=local
 ```
 
 For terminal-only local testing, start in console mode:
@@ -99,6 +103,9 @@ Notes:
 - The safer default for terminal speech is `deepgram/aura-2` with voice `athena`.
 - If you want Sarvam specifically, set `YANTRA_VOICE_BACKEND=sarvam` and add `SARVAM_API_KEY`.
 - The LiveKit agent still uses Yantra retrieval and the provider ring through the existing Python service code.
+- `YANTRA_LIVEKIT_AI_TARGET=local` keeps the worker on the in-process `ChatService`.
+- `YANTRA_LIVEKIT_AI_TARGET=render` makes the worker call `YANTRA_AI_RENDER_URL/chat` instead.
+- The room voice worker is a separate process from the Render FastAPI service. To run room voice fully on Render, deploy a second Render worker or web service that runs `python livekit_terminal_agent.py start` with the same LiveKit credentials and `YANTRA_LIVEKIT_AI_TARGET=render`.
 
 The default chat mode is now the bounded provider ring:
 

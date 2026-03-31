@@ -1,13 +1,17 @@
 'use client';
 
 import {
+  getTrackReferenceId,
+  type TrackReference,
+} from '@livekit/components-core';
+import {
   BarVisualizer,
   LiveKitRoom,
-  RoomAudioRenderer,
   StartAudio,
   TrackToggle,
   useLocalParticipant,
   useConnectionState,
+  useTracks,
   useTranscriptions,
   useVoiceAssistant,
 } from '@livekit/components-react';
@@ -158,6 +162,80 @@ function VoiceOrb({
   );
 }
 
+function BoostedAudioTrack({ trackRef, gain = 2.2 }: { trackRef: TrackReference; gain?: number }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const element = audioRef.current;
+    const track = trackRef.publication.track;
+
+    if (!element || !track || track.kind !== Track.Kind.Audio) {
+      return;
+    }
+
+    track.attach(element);
+    element.autoplay = true;
+    element.volume = 1;
+
+    const stream = element.srcObject;
+
+    if (!(stream instanceof MediaStream)) {
+      return () => {
+        track.detach(element);
+      };
+    }
+
+    const audioContext = new AudioContext();
+    const sourceNode = audioContext.createMediaStreamSource(stream);
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = gain;
+    sourceNode.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    element.volume = 0;
+    element.muted = true;
+
+    const resumeAudio = () => {
+      if (audioContext.state !== 'running') {
+        void audioContext.resume();
+      }
+    };
+
+    void audioContext.resume().catch(() => undefined);
+    window.addEventListener('pointerdown', resumeAudio);
+    window.addEventListener('keydown', resumeAudio);
+
+    return () => {
+      window.removeEventListener('pointerdown', resumeAudio);
+      window.removeEventListener('keydown', resumeAudio);
+      track.detach(element);
+      sourceNode.disconnect();
+      gainNode.disconnect();
+      void audioContext.close().catch(() => undefined);
+    };
+  }, [gain, trackRef]);
+
+  return <audio ref={audioRef} />;
+}
+
+function BoostedRoomAudioRenderer({ gain = 2.2 }: { gain?: number }) {
+  const tracks = useTracks(
+    [Track.Source.Microphone, Track.Source.ScreenShareAudio, Track.Source.Unknown],
+    {
+      updateOnlyOn: [],
+      onlySubscribed: true,
+    },
+  ).filter((ref) => !ref.participant.isLocal && ref.publication.kind === Track.Kind.Audio);
+
+  return (
+    <div style={{ display: 'none' }}>
+      {tracks.map((trackRef) => (
+        <BoostedAudioTrack key={getTrackReferenceId(trackRef)} trackRef={trackRef} gain={gain} />
+      ))}
+    </div>
+  );
+}
+
 function DesktopLaunchCard({ roomLabel, roomSummary, isPreparing, error, onStart }: DesktopLaunchCardProps) {
   return (
     <aside className="hidden xl:block xl:sticky xl:top-28 xl:self-start">
@@ -299,6 +377,23 @@ function LiveAssistantPanel({
   const micEnabled = Boolean(localMicPublication?.isUpstreamPaused === false || localMicPublication?.track);
   const agentConnected = Boolean(agent);
   const stateLabel = labelForState(state, String(connectionState), agentConnected);
+  const [agentJoinTimedOut, setAgentJoinTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (connectionState !== 'connected' || agentConnected || isPreparing || Boolean(error)) {
+      setAgentJoinTimedOut(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setAgentJoinTimedOut(true);
+    }, 12000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [agentConnected, connectionState, error, isPreparing]);
+
   const shellClassName =
     mode === 'desktop'
       ? 'sticky top-28 flex h-[calc(100svh-8.5rem)] max-h-[calc(100svh-8.5rem)] self-start overflow-hidden rounded-[2rem] border border-cyan-300/14 bg-[linear-gradient(180deg,rgba(4,10,16,0.96),rgba(2,6,10,0.98))] shadow-[0_20px_64px_rgba(0,0,0,0.3)] backdrop-blur-[24px]'
@@ -368,6 +463,12 @@ function LiveAssistantPanel({
                 <Radio size={15} />
                 Reconnect Yantra
               </button>
+            ) : null}
+
+            {agentJoinTimedOut ? (
+              <div className="mt-3 rounded-[1.05rem] border border-amber-300/18 bg-amber-300/8 px-4 py-3 text-sm text-amber-100/86">
+                Yantra joined the room shell, but no voice worker attached yet. Reconnect Yantra, and if it keeps happening make sure the LiveKit worker is running locally or deployed separately.
+              </div>
             ) : null}
           </div>
         </div>
@@ -615,15 +716,7 @@ export default function RoomVoiceAssistant({ roomKey, roomLabel, roomSummary }: 
       serverUrl={session.url}
       token={session.token}
       connect={connect}
-      audio={
-        connect
-          ? {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true,
-            }
-          : false
-      }
+      audio={false}
       connectOptions={{
         autoSubscribe: true,
       }}
@@ -649,7 +742,7 @@ export default function RoomVoiceAssistant({ roomKey, roomLabel, roomSummary }: 
         setError('Yantra disconnected from the room. Launch again to reconnect.');
       }}
     >
-      <RoomAudioRenderer />
+      <BoostedRoomAudioRenderer />
 
       {isOpen ? (
         <>
