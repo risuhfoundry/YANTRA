@@ -19,13 +19,13 @@ from yantra_ai.schemas.chat import ChatRequest, ChatResponse, SourceSnippet
 
 SMALLTALK_RE = re.compile(
     r"^(hi|hello|hey|yo|sup|hola|good morning|good afternoon|good evening)"
-    r"( yantra| there| bud| man)?[!. ]*$",
+    r"( yantra| there| bud| man)?[!?. ]*$",
     re.IGNORECASE,
 )
 CHITCHAT_RE = re.compile(
     r"^(wow(?: .+)?|ok(?:ay)?|cool|nice|great|awesome|amazing|thanks?|thank you|thx|"
     r"how are you|what'?s up|whats up|you are the best|you're the best|yu are the best|"
-    r"haha|lol|hmm+|good job)[!. ]*$",
+    r"haha|lol|hmm+|good job)[!?. ]*$",
     re.IGNORECASE,
 )
 
@@ -127,9 +127,13 @@ class ChatService:
     ) -> tuple[str, str, str | None]:
         if self.settings.chat_provider == "ring" and not self._has_configured_provider_credentials():
             return (
-                "Provider ring is enabled, but no upstream API keys are configured. "
-                "Add at least one Groq, Gemini, or GitHub Models key and restart Yantra.",
-                "ring-unconfigured",
+                self._compose_reply(
+                    question=question,
+                    student_name=request.student.name,
+                    intent=intent,
+                    results=results,
+                ),
+                "local-fallback",
                 None,
             )
 
@@ -179,7 +183,7 @@ class ChatService:
 
     def _build_prompt_context(self, results: list[SearchResult]) -> str:
         sections = []
-        for result in results[:2]:
+        for result in results[:3]:
             sections.append(
                 f"## {result.title}\n{take_key_sentences(result.text, limit=2)}"
             )
@@ -283,13 +287,11 @@ class ChatService:
 
     def _compose_smalltalk_reply(self, request: ChatRequest) -> str:
         student = request.student
-        goals = ", ".join(student.learning_goals[:2]) if student.learning_goals else "set one with /goal add"
+        goals = ", ".join(student.learning_goals[:1]) if student.learning_goals else "set one with /goal add"
 
         return (
-            f"Hi {student.name} - I am Yantra, your local AI teacher for the {student.current_path} path. "
-            f"You are at {student.progress}% progress. "
-            f"Next quick actions: check your path with /path, set progress with /progress, and set a goal with /goal add. "
-            f"Current goal focus: {goals}."
+            f"Hey {student.name}, good to see you. You’re in {student.current_path} and at {student.progress}% progress. "
+            f"Current focus: {goals}."
         )
 
     def _compose_reply(
@@ -301,32 +303,26 @@ class ChatService:
         results: list[SearchResult],
     ) -> str:
         opener = {
-            "debug": f"{student_name}, let us keep the diagnosis narrow.",
-            "quiz": f"{student_name}, the first slice is not running quizzes yet, but I can ground the topic before we add that route.",
-            "guidance": f"{student_name}, the next step should stay small enough that we can verify it locally.",
-            "teach": f"{student_name}, here is the simplest grounded version first.",
-            "build": f"{student_name}, here is the safest way to build this without rework.",
-            "general": f"{student_name}, here is the best grounded answer from the current Yantra knowledge base.",
+            "debug": f"{student_name}, let us keep this diagnosis narrow.",
+            "quiz": f"{student_name}, quizzes are not live yet, but here is the grounded version.",
+            "guidance": f"{student_name}, here is the clearest next move.",
+            "teach": f"{student_name}, here is the simplest grounded version.",
+            "build": f"{student_name}, here is the safest path.",
+            "general": f"{student_name}, here is the grounded answer.",
         }[intent]
 
         if not results:
             return (
-                f"{opener} The local microservice is running, but the current knowledge files do not cover "
-                f"'{question}'. {INTENT_FALLBACKS[intent]}"
+                f"{opener} The current Yantra knowledge base does not cover '{question}' yet. "
+                f"{INTENT_FALLBACKS[intent]}"
             )
 
-        sections = [
-            take_key_sentences(results[0].text, limit=2),
-        ]
+        sections = [take_key_sentences(results[0].text, limit=2)]
 
-        if len(results) > 1:
-            sections.append(take_key_sentences(results[1].text, limit=2))
+        if len(results) > 1 and intent in {"teach", "guidance", "build", "general"}:
+            sections.append(take_key_sentences(results[1].text, limit=1))
 
-        source_names = ", ".join(result.title for result in results[:2])
-
-        return (
-            f"{opener}\n\n"
-            f"{format_grounded_sections(sections)}\n\n"
-            f"Current grounding came from: {source_names}.\n"
-            f"Next step: {INTENT_FALLBACKS[intent]}"
-        )
+        answer = format_grounded_sections(sections)
+        if intent == "debug":
+            return f"{opener}\n\n{answer}\n\n{INTENT_FALLBACKS[intent]}"
+        return f"{opener}\n\n{answer}"

@@ -6,6 +6,7 @@ os.environ["YANTRA_CHAT_PROVIDER"] = "local"
 from fastapi.testclient import TestClient
 
 from main import app
+from yantra_ai.core.prompts import make_voice_friendly_reply
 from yantra_ai.core.providers import ProviderResult
 from yantra_ai.core.rag import RetrievalBatch, SearchResult
 from yantra_ai.core.service import ChatService
@@ -53,7 +54,7 @@ def test_chat_handles_unknown_topic() -> None:
     assert data["retrieval_mode"] == "lexical"
     assert data["provider"] == "local"
     assert data["model_used"] is None
-    assert "do not cover" in data["reply"]
+    assert "does not cover" in data["reply"]
 
 
 def test_chat_greeting_uses_fast_local_path() -> None:
@@ -116,6 +117,40 @@ def test_chat_service_caches_identical_requests(monkeypatch) -> None:
     assert calls["generate"] == 1
 
 
+def test_chat_can_answer_account_creation_questions_from_yantra_docs() -> None:
+    response = client.post(
+        "/chat",
+        json={
+            "messages": [{"role": "user", "content": "How do I create an account on Yantra?"}],
+            "student": {
+                "name": "Aarav",
+                "current_path": "Python Room",
+                "progress": 22,
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["context_used"] is True
+    assert data["provider"] == "local"
+    assert any("account" in source["excerpt"].lower() or "signup" in source["excerpt"].lower() for source in data["sources"])
+
+
+def test_make_voice_friendly_reply_trims_long_grounding_sections() -> None:
+    spoken = make_voice_friendly_reply(
+        "Open the Yantra signup page. Use your email and password or continue with Google. "
+        "Current grounding came from: Create Account, Student Profile. "
+        "Next step: finish onboarding after signup.",
+        sentence_limit=2,
+        char_limit=180,
+    )
+
+    assert "Current grounding" not in spoken
+    assert "Next step" not in spoken
+    assert spoken.count(".") <= 2
+
+
 def test_ring_social_prompt_skips_retrieval_and_uses_provider(monkeypatch) -> None:
     service = ChatService()
     service.settings = replace(
@@ -143,7 +178,7 @@ def test_ring_social_prompt_skips_retrieval_and_uses_provider(monkeypatch) -> No
     monkeypatch.setattr("yantra_ai.core.service.search_knowledge_details", fail_retrieval)
 
     request = ChatRequest(
-        messages=[Message(role="user", content="how are you")],
+        messages=[Message(role="user", content="How are you?")],
         student=StudentContext(name="Aarav"),
     )
 

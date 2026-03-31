@@ -7,6 +7,9 @@ from typing import Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from groq import APIConnectionError as GroqAPIConnectionError
+from groq import APIStatusError as GroqAPIStatusError
+from groq import Groq
 from yantra_ai.core.config import ProviderLaneSettings, Settings, get_settings
 from yantra_ai.schemas.chat import Message
 
@@ -172,9 +175,77 @@ class OpenAICompatibleChatClient:
         )
 
 
-class GroqChatClient(OpenAICompatibleChatClient):
-    def __init__(self) -> None:
-        super().__init__(base_url="https://api.groq.com/openai/v1/chat/completions", provider_name="groq")
+class GroqChatClient:
+    provider_name = "groq"
+
+    def generate(
+        self,
+        *,
+        lane: ProviderLaneSettings,
+        system_prompt: str,
+        messages: list[Message],
+        timeout_s: int,
+    ) -> str:
+        if not lane.api_key:
+            raise ProviderError(
+                f"Missing API key for {lane.name}.",
+                provider=self.provider_name,
+                lane_name=lane.name,
+                retryable=False,
+            )
+
+        client = Groq(api_key=lane.api_key, timeout=timeout_s, max_retries=0)
+        try:
+            completion = client.chat.completions.create(
+                model=lane.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    *(
+                        {"role": message.role, "content": message.content}
+                        for message in messages[-8:]
+                    ),
+                ],
+                temperature=0.2,
+            )
+        except GroqAPIStatusError as exc:
+            body = ""
+            try:
+                body = json.dumps(exc.response.json())
+            except Exception:
+                body = str(exc)
+            retryable = exc.status_code in RETRYABLE_STATUS_CODES
+            raise ProviderError(
+                body or f"{self.provider_name} request failed with status {exc.status_code}.",
+                provider=self.provider_name,
+                lane_name=lane.name,
+                retryable=retryable,
+                status_code=exc.status_code,
+            ) from exc
+        except GroqAPIConnectionError as exc:
+            raise ProviderError(
+                str(exc) or f"{self.provider_name} request failed.",
+                provider=self.provider_name,
+                lane_name=lane.name,
+                retryable=True,
+            ) from exc
+        except TimeoutError as exc:
+            raise ProviderError(
+                f"{self.provider_name} request timed out.",
+                provider=self.provider_name,
+                lane_name=lane.name,
+                retryable=True,
+            ) from exc
+
+        content = completion.choices[0].message.content if completion.choices else None
+        if isinstance(content, str) and content.strip():
+            return content.strip().replace("—", "-")
+
+        raise ProviderError(
+            f"{self.provider_name} returned an empty assistant message.",
+            provider=self.provider_name,
+            lane_name=lane.name,
+            retryable=True,
+        )
 
 
 class GeminiChatClient(OpenAICompatibleChatClient):
