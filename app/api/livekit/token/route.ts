@@ -27,8 +27,12 @@ function sanitizeSegment(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 }
 
-function buildRoomName(roomKey: string, userId: string) {
-  return `yantra-${sanitizeSegment(roomKey)}-${sanitizeSegment(userId)}`;
+function buildSessionKey() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function buildRoomName(roomKey: string, userId: string, sessionKey: string) {
+  return `yantra-${sanitizeSegment(roomKey)}-${sanitizeSegment(userId)}-${sanitizeSegment(sessionKey)}`;
 }
 
 function buildParticipantIdentity(userId: string) {
@@ -52,7 +56,8 @@ export async function POST(request: Request) {
     const livekitApiSecret = requireEnv('LIVEKIT_API_SECRET');
     const agentName = process.env.YANTRA_LIVEKIT_AGENT_NAME?.trim() || 'yantra-terminal-voice';
     const apiHost = toApiHost(livekitUrl);
-    const roomName = buildRoomName(roomKey, auth.user.id);
+    const sessionKey = buildSessionKey();
+    const roomName = buildRoomName(roomKey, auth.user.id, sessionKey);
     const roomService = new RoomServiceClient(apiHost, livekitApiKey, livekitApiSecret);
     const dispatchClient = new AgentDispatchClient(apiHost, livekitApiKey, livekitApiSecret);
 
@@ -66,25 +71,21 @@ export async function POST(request: Request) {
           roomKey,
           roomLabel,
           learnerId: auth.user.id,
+          sessionKey,
         }),
       });
     } catch {
-      // Rooms can already exist for an active learner session. Reuse them.
+      // Each launch uses a fresh room name, but handle collisions defensively.
     }
-
-    const existingDispatches = await dispatchClient.listDispatch(roomName).catch(() => []);
-    const hasYantraDispatch = existingDispatches.some((dispatch) => dispatch.agentName === agentName);
-
-    if (!hasYantraDispatch) {
-      await dispatchClient.createDispatch(roomName, agentName, {
-        metadata: JSON.stringify({
-          roomKey,
-          roomLabel,
-          learnerName: auth.profile.name,
-          currentPath: auth.profile.primaryLearningGoals?.[0] || 'AI Foundations',
-        }),
-      });
-    }
+    await dispatchClient.createDispatch(roomName, agentName, {
+      metadata: JSON.stringify({
+        roomKey,
+        roomLabel,
+        learnerName: auth.profile.name,
+        currentPath: auth.profile.primaryLearningGoals?.[0] || 'AI Foundations',
+        sessionKey,
+      }),
+    });
 
     const participantIdentity = buildParticipantIdentity(auth.user.id);
     const token = new AccessToken(livekitApiKey, livekitApiSecret, {
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
         learnerName: auth.profile.name,
         roomKey,
         roomLabel,
+        sessionKey,
       }),
       ttl: '1h',
     });

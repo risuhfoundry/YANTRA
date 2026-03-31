@@ -61,6 +61,7 @@ type LiveAssistantPanelProps = {
   roomName: string;
   isPreparing: boolean;
   error: string | null;
+  onRetry: () => void;
   onClose: () => void;
   onEndSession: () => void;
 };
@@ -103,9 +104,13 @@ function toneForState(state: string) {
   }
 }
 
-function labelForState(state: string, connectionState: string) {
+function labelForState(state: string, connectionState: string, agentConnected = false) {
   if (connectionState !== 'connected') {
     return connectionState.toLowerCase();
+  }
+
+  if (!agentConnected) {
+    return 'joining';
   }
 
   switch (state) {
@@ -209,7 +214,7 @@ function DesktopCollapsedCard({
 }) {
   const connectionState = useConnectionState();
   const { state, audioTrack, agent } = useVoiceAssistant();
-  const stateLabel = labelForState(state, String(connectionState));
+  const stateLabel = labelForState(state, String(connectionState), Boolean(agent));
 
   return (
     <aside className="hidden xl:block xl:sticky xl:top-28 xl:self-start">
@@ -261,6 +266,7 @@ function LiveAssistantPanel({
   roomName,
   isPreparing,
   error,
+  onRetry,
   onClose,
   onEndSession,
 }: LiveAssistantPanelProps) {
@@ -291,7 +297,8 @@ function LiveAssistantPanel({
   );
   const localMicPublication = localParticipant.getTrackPublication(Track.Source.Microphone);
   const micEnabled = Boolean(localMicPublication?.isUpstreamPaused === false || localMicPublication?.track);
-  const stateLabel = labelForState(state, String(connectionState));
+  const agentConnected = Boolean(agent);
+  const stateLabel = labelForState(state, String(connectionState), agentConnected);
   const shellClassName =
     mode === 'desktop'
       ? 'sticky top-28 flex h-[calc(100svh-8.5rem)] max-h-[calc(100svh-8.5rem)] self-start overflow-hidden rounded-[2rem] border border-cyan-300/14 bg-[linear-gradient(180deg,rgba(4,10,16,0.96),rgba(2,6,10,0.98))] shadow-[0_20px_64px_rgba(0,0,0,0.3)] backdrop-blur-[24px]'
@@ -351,6 +358,17 @@ function LiveAssistantPanel({
               label="Turn on audio"
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[1.05rem] border border-cyan-300/18 bg-cyan-300/10 px-4 py-2.5 text-sm font-medium text-cyan-50 transition-colors hover:border-cyan-200/30 hover:bg-cyan-300/16"
             />
+
+            {!agentConnected && !isPreparing && !error ? (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[1.05rem] border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/82 transition-colors hover:border-cyan-200/26 hover:bg-cyan-300/10"
+              >
+                <Radio size={15} />
+                Reconnect Yantra
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -480,8 +498,8 @@ function FloatingLauncher({ isPreparing, onOpen, label, stateLabel, active }: Fl
 
 function MobileLiveLauncher({ onOpen }: { onOpen: () => void }) {
   const connectionState = useConnectionState();
-  const { state } = useVoiceAssistant();
-  const stateLabel = labelForState(state, String(connectionState));
+  const { state, agent } = useVoiceAssistant();
+  const stateLabel = labelForState(state, String(connectionState), Boolean(agent));
   return <FloatingLauncher isPreparing={false} onOpen={onOpen} label="Yantra Live" stateLabel={stateLabel} active />;
 }
 
@@ -558,6 +576,13 @@ export default function RoomVoiceAssistant({ roomKey, roomLabel, roomSummary }: 
     setSessionInstance((current) => current + 1);
   }
 
+  function retrySession() {
+    endSession();
+    window.setTimeout(() => {
+      void startSession();
+    }, 0);
+  }
+
   if (!session) {
     return (
       <>
@@ -616,7 +641,12 @@ export default function RoomVoiceAssistant({ roomKey, roomLabel, roomSummary }: 
           isIntentionalShutdownRef.current = false;
           setSession(null);
           setError(null);
+          return;
         }
+        setSession(null);
+        setIsPreparing(false);
+        setIsOpen(true);
+        setError('Yantra disconnected from the room. Launch again to reconnect.');
       }}
     >
       <RoomAudioRenderer />
@@ -631,6 +661,7 @@ export default function RoomVoiceAssistant({ roomKey, roomLabel, roomSummary }: 
               roomName={session.roomName}
               isPreparing={isPreparing}
               error={error}
+              onRetry={retrySession}
               onClose={() => setIsOpen(false)}
               onEndSession={endSession}
             />
@@ -656,6 +687,7 @@ export default function RoomVoiceAssistant({ roomKey, roomLabel, roomSummary }: 
               roomName={session.roomName}
               isPreparing={isPreparing}
               error={error}
+              onRetry={retrySession}
               onClose={() => setIsOpen(false)}
               onEndSession={endSession}
             />
