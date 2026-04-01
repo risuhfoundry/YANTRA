@@ -6,6 +6,9 @@ export type YantraChatMessage = {
 };
 
 export const YANTRA_MODEL = 'gemini-2.5-flash';
+export const MAX_MODEL_CHAT_MESSAGES = 12;
+export const MAX_PERSISTED_CHAT_MESSAGES = 40;
+const MAX_CHAT_MESSAGE_LENGTH = 4000;
 
 export const yantraSystemPrompt = `You are Yantra, a helpful AI teacher for the Yantra learning platform.
 
@@ -48,3 +51,30 @@ export const yantraCtaPrompts = {
   accountSetup: 'I want to create a Yantra account. What should I know before I begin?',
   demo: 'Give me a quick demo-style overview of what Yantra can do.',
 };
+
+export function normalizeYantraChatMessages(
+  messages: unknown,
+  limit = MAX_PERSISTED_CHAT_MESSAGES,
+): YantraChatMessage[] {
+  if (!Array.isArray(messages)) {
+    return [];
+  }
+
+  return messages
+    .filter((message): message is { role?: unknown; content?: unknown } => typeof message === 'object' && message !== null)
+    .map((message) => {
+      const role = message.role === 'assistant' ? 'assistant' : message.role === 'user' ? 'user' : null;
+      const content = typeof message.content === 'string' ? message.content.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH) : '';
+
+      if (!role || content.length === 0) {
+        return null;
+      }
+
+      return {
+        role,
+        content,
+      } satisfies YantraChatMessage;
+    })
+    .filter((message): message is YantraChatMessage => Boolean(message))
+    .slice(-limit);
+}

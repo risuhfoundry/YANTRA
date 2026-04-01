@@ -1,0 +1,426 @@
+import {
+  buildStarterStudentDashboard,
+  starterStudentDashboardSeed,
+  type StudentDashboardCurriculumNode,
+  type StudentDashboardData,
+  type StudentDashboardPath,
+  type StudentDashboardRoom,
+  type StudentDashboardSkill,
+  type StudentDashboardWeeklyActivity,
+} from '@/src/features/dashboard/student-dashboard-model';
+import { getAuthenticatedProfile } from './profiles';
+import { createClient } from './server';
+
+type DashboardPathRow = {
+  user_id: string;
+  path_title: string;
+  path_description: string;
+  path_status_label: string;
+  path_progress: number;
+  current_focus: string;
+  recommended_action_title: string;
+  recommended_action_description: string;
+  recommended_action_prompt: string;
+  learning_track_title: string;
+  learning_track_description: string;
+  completion_estimate_label: string;
+  mastery_progress: number;
+  mastery_unlocked_count: number;
+  mastery_total_count: number;
+  next_session_date_day: string;
+  next_session_date_month: string;
+  next_session_title: string;
+  next_session_day_label: string;
+  next_session_time_label: string;
+  next_session_instructor_name: string;
+  next_session_instructor_role: string;
+  next_session_instructor_image_url: string;
+  weekly_completed_sessions: number;
+  weekly_change_label: string;
+  momentum_summary: string;
+  focus_summary: string;
+  consistency_summary: string;
+};
+
+type DashboardSkillRow = {
+  user_id: string;
+  skill_key: string;
+  title: string;
+  description: string;
+  level_label: string;
+  progress: number;
+  icon_key: StudentDashboardSkill['iconKey'];
+  tone_key: StudentDashboardSkill['toneKey'];
+  locked: boolean;
+  sort_order: number;
+};
+
+type DashboardCurriculumNodeRow = {
+  user_id: string;
+  node_key: string;
+  module_label: string;
+  title: string;
+  description: string;
+  status_label: string;
+  unlocked: boolean;
+  sort_order: number;
+};
+
+type DashboardRoomRow = {
+  user_id: string;
+  room_key: string;
+  title: string;
+  description: string;
+  status_label: string;
+  cta_label: string;
+  prompt: string;
+  featured: boolean;
+  texture_key: StudentDashboardRoom['textureKey'];
+  sort_order: number;
+};
+
+type DashboardWeeklyActivityRow = {
+  user_id: string;
+  day_key: string;
+  day_label: string;
+  container_height: number;
+  fill_height: number;
+  highlighted: boolean;
+  sort_order: number;
+};
+
+type DashboardQueryResult = {
+  pathRow: DashboardPathRow | null;
+  skillRows: DashboardSkillRow[];
+  curriculumRows: DashboardCurriculumNodeRow[];
+  roomRows: DashboardRoomRow[];
+  weeklyRows: DashboardWeeklyActivityRow[];
+};
+
+type AuthenticatedProfileResult = NonNullable<Awaited<ReturnType<typeof getAuthenticatedProfile>>>;
+
+function getErrorCode(error: unknown) {
+  if (!error || typeof error !== 'object' || !('code' in error)) {
+    return '';
+  }
+
+  return String((error as { code?: unknown }).code ?? '');
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message.toLowerCase();
+  }
+
+  if (!error || typeof error !== 'object' || !('message' in error)) {
+    return '';
+  }
+
+  return String((error as { message?: unknown }).message ?? '').toLowerCase();
+}
+
+function isMissingDashboardSchemaError(error: unknown) {
+  const code = getErrorCode(error);
+  const message = getErrorMessage(error);
+
+  return (
+    code === '42P01' ||
+    code === 'PGRST205' ||
+    message.includes('relation') ||
+    message.includes('could not find the table') ||
+    message.includes('does not exist')
+  );
+}
+
+function isDashboardAccessError(error: unknown) {
+  const code = getErrorCode(error);
+  const message = getErrorMessage(error);
+
+  return code === '42501' || message.includes('permission denied') || message.includes('row-level security');
+}
+
+function isRecoverableDashboardError(error: unknown) {
+  return isMissingDashboardSchemaError(error) || isDashboardAccessError(error);
+}
+
+function mapPathRow(row: DashboardPathRow): StudentDashboardPath {
+  return {
+    pathTitle: row.path_title,
+    pathDescription: row.path_description,
+    pathStatusLabel: row.path_status_label,
+    pathProgress: row.path_progress,
+    currentFocus: row.current_focus,
+    recommendedActionTitle: row.recommended_action_title,
+    recommendedActionDescription: row.recommended_action_description,
+    recommendedActionPrompt: row.recommended_action_prompt,
+    learningTrackTitle: row.learning_track_title,
+    learningTrackDescription: row.learning_track_description,
+    completionEstimateLabel: row.completion_estimate_label,
+    masteryProgress: row.mastery_progress,
+    masteryUnlockedCount: row.mastery_unlocked_count,
+    masteryTotalCount: row.mastery_total_count,
+    nextSessionDateDay: row.next_session_date_day,
+    nextSessionDateMonth: row.next_session_date_month,
+    nextSessionTitle: row.next_session_title,
+    nextSessionDayLabel: row.next_session_day_label,
+    nextSessionTimeLabel: row.next_session_time_label,
+    nextSessionInstructorName: row.next_session_instructor_name,
+    nextSessionInstructorRole: row.next_session_instructor_role,
+    nextSessionInstructorImageUrl: row.next_session_instructor_image_url,
+    weeklyCompletedSessions: row.weekly_completed_sessions,
+    weeklyChangeLabel: row.weekly_change_label,
+    momentumSummary: row.momentum_summary,
+    focusSummary: row.focus_summary,
+    consistencySummary: row.consistency_summary,
+  };
+}
+
+function mapSkillRow(row: DashboardSkillRow): StudentDashboardSkill {
+  return {
+    skillKey: row.skill_key,
+    title: row.title,
+    description: row.description,
+    levelLabel: row.level_label,
+    progress: row.progress,
+    iconKey: row.icon_key,
+    toneKey: row.tone_key,
+    locked: row.locked,
+    sortOrder: row.sort_order,
+  };
+}
+
+function mapCurriculumRow(row: DashboardCurriculumNodeRow): StudentDashboardCurriculumNode {
+  return {
+    nodeKey: row.node_key,
+    moduleLabel: row.module_label,
+    title: row.title,
+    description: row.description,
+    statusLabel: row.status_label,
+    unlocked: row.unlocked,
+    sortOrder: row.sort_order,
+  };
+}
+
+function mapRoomRow(row: DashboardRoomRow): StudentDashboardRoom {
+  return {
+    roomKey: row.room_key,
+    title: row.title,
+    description: row.description,
+    statusLabel: row.status_label,
+    ctaLabel: row.cta_label,
+    prompt: row.prompt,
+    featured: row.featured,
+    textureKey: row.texture_key,
+    sortOrder: row.sort_order,
+  };
+}
+
+function mapWeeklyRow(row: DashboardWeeklyActivityRow): StudentDashboardWeeklyActivity {
+  return {
+    dayKey: row.day_key,
+    dayLabel: row.day_label,
+    containerHeight: row.container_height,
+    fillHeight: row.fill_height,
+    highlighted: row.highlighted,
+    sortOrder: row.sort_order,
+  };
+}
+
+async function loadDashboardRows(userId: string) {
+  const supabase = await createClient();
+
+  const [pathResult, skillsResult, curriculumResult, roomsResult, weeklyResult] = await Promise.all([
+    supabase.from('student_dashboard_paths').select('*').eq('user_id', userId).maybeSingle(),
+    supabase.from('student_skill_progress').select('*').eq('user_id', userId).order('sort_order', { ascending: true }),
+    supabase.from('student_curriculum_nodes').select('*').eq('user_id', userId).order('sort_order', { ascending: true }),
+    supabase.from('student_practice_rooms').select('*').eq('user_id', userId).order('sort_order', { ascending: true }),
+    supabase.from('student_weekly_activity').select('*').eq('user_id', userId).order('sort_order', { ascending: true }),
+  ]);
+
+  const error =
+    pathResult.error || skillsResult.error || curriculumResult.error || roomsResult.error || weeklyResult.error || null;
+
+  return {
+    error,
+    data: {
+      pathRow: (pathResult.data as DashboardPathRow | null) ?? null,
+      skillRows: (skillsResult.data as DashboardSkillRow[] | null) ?? [],
+      curriculumRows: (curriculumResult.data as DashboardCurriculumNodeRow[] | null) ?? [],
+      roomRows: (roomsResult.data as DashboardRoomRow[] | null) ?? [],
+      weeklyRows: (weeklyResult.data as DashboardWeeklyActivityRow[] | null) ?? [],
+    } satisfies DashboardQueryResult,
+  };
+}
+
+function isDashboardSeedMissing(data: DashboardQueryResult) {
+  return (
+    !data.pathRow ||
+    data.skillRows.length === 0 ||
+    data.curriculumRows.length === 0 ||
+    data.roomRows.length === 0 ||
+    data.weeklyRows.length === 0
+  );
+}
+
+async function seedDashboardData(userId: string) {
+  const supabase = await createClient();
+  const { path, skills, curriculumNodes, rooms, weeklyActivity } = starterStudentDashboardSeed;
+
+  const pathPayload: DashboardPathRow = {
+    user_id: userId,
+    path_title: path.pathTitle,
+    path_description: path.pathDescription,
+    path_status_label: path.pathStatusLabel,
+    path_progress: path.pathProgress,
+    current_focus: path.currentFocus,
+    recommended_action_title: path.recommendedActionTitle,
+    recommended_action_description: path.recommendedActionDescription,
+    recommended_action_prompt: path.recommendedActionPrompt,
+    learning_track_title: path.learningTrackTitle,
+    learning_track_description: path.learningTrackDescription,
+    completion_estimate_label: path.completionEstimateLabel,
+    mastery_progress: path.masteryProgress,
+    mastery_unlocked_count: path.masteryUnlockedCount,
+    mastery_total_count: path.masteryTotalCount,
+    next_session_date_day: path.nextSessionDateDay,
+    next_session_date_month: path.nextSessionDateMonth,
+    next_session_title: path.nextSessionTitle,
+    next_session_day_label: path.nextSessionDayLabel,
+    next_session_time_label: path.nextSessionTimeLabel,
+    next_session_instructor_name: path.nextSessionInstructorName,
+    next_session_instructor_role: path.nextSessionInstructorRole,
+    next_session_instructor_image_url: path.nextSessionInstructorImageUrl,
+    weekly_completed_sessions: path.weeklyCompletedSessions,
+    weekly_change_label: path.weeklyChangeLabel,
+    momentum_summary: path.momentumSummary,
+    focus_summary: path.focusSummary,
+    consistency_summary: path.consistencySummary,
+  };
+
+  const skillPayload = skills.map<DashboardSkillRow>((skill) => ({
+    user_id: userId,
+    skill_key: skill.skillKey,
+    title: skill.title,
+    description: skill.description,
+    level_label: skill.levelLabel,
+    progress: skill.progress,
+    icon_key: skill.iconKey,
+    tone_key: skill.toneKey,
+    locked: skill.locked,
+    sort_order: skill.sortOrder,
+  }));
+
+  const curriculumPayload = curriculumNodes.map<DashboardCurriculumNodeRow>((node) => ({
+    user_id: userId,
+    node_key: node.nodeKey,
+    module_label: node.moduleLabel,
+    title: node.title,
+    description: node.description,
+    status_label: node.statusLabel,
+    unlocked: node.unlocked,
+    sort_order: node.sortOrder,
+  }));
+
+  const roomPayload = rooms.map<DashboardRoomRow>((room) => ({
+    user_id: userId,
+    room_key: room.roomKey,
+    title: room.title,
+    description: room.description,
+    status_label: room.statusLabel,
+    cta_label: room.ctaLabel,
+    prompt: room.prompt,
+    featured: room.featured,
+    texture_key: room.textureKey,
+    sort_order: room.sortOrder,
+  }));
+
+  const weeklyPayload = weeklyActivity.map<DashboardWeeklyActivityRow>((day) => ({
+    user_id: userId,
+    day_key: day.dayKey,
+    day_label: day.dayLabel,
+    container_height: day.containerHeight,
+    fill_height: day.fillHeight,
+    highlighted: day.highlighted,
+    sort_order: day.sortOrder,
+  }));
+
+  const [pathResult, skillsResult, curriculumResult, roomsResult, weeklyResult] = await Promise.all([
+    supabase.from('student_dashboard_paths').upsert(pathPayload, { onConflict: 'user_id' }),
+    supabase.from('student_skill_progress').upsert(skillPayload, { onConflict: 'user_id,skill_key' }),
+    supabase.from('student_curriculum_nodes').upsert(curriculumPayload, { onConflict: 'user_id,node_key' }),
+    supabase.from('student_practice_rooms').upsert(roomPayload, { onConflict: 'user_id,room_key' }),
+    supabase.from('student_weekly_activity').upsert(weeklyPayload, { onConflict: 'user_id,day_key' }),
+  ]);
+
+  const error =
+    pathResult.error || skillsResult.error || curriculumResult.error || roomsResult.error || weeklyResult.error || null;
+
+  if (!error) {
+    return true;
+  }
+
+  if (isRecoverableDashboardError(error)) {
+    return false;
+  }
+
+  throw error;
+}
+
+function mapDashboardData(data: DashboardQueryResult, profile: StudentDashboardData['profile']): StudentDashboardData {
+  const fallback = starterStudentDashboardSeed;
+
+  return {
+    profile,
+    path: data.pathRow ? mapPathRow(data.pathRow) : fallback.path,
+    skills: data.skillRows.length > 0 ? data.skillRows.map(mapSkillRow) : fallback.skills,
+    curriculumNodes: data.curriculumRows.length > 0 ? data.curriculumRows.map(mapCurriculumRow) : fallback.curriculumNodes,
+    rooms: data.roomRows.length > 0 ? data.roomRows.map(mapRoomRow) : fallback.rooms,
+    weeklyActivity: data.weeklyRows.length > 0 ? data.weeklyRows.map(mapWeeklyRow) : fallback.weeklyActivity,
+  };
+}
+
+export async function getAuthenticatedDashboardData(profileResult?: AuthenticatedProfileResult | null) {
+  const resolvedProfileResult = profileResult ?? (await getAuthenticatedProfile());
+
+  if (!resolvedProfileResult) {
+    return null;
+  }
+
+  const email = resolvedProfileResult.user.email ?? '';
+  const fallback = buildStarterStudentDashboard(resolvedProfileResult.profile, email);
+  const profile = fallback.profile;
+
+  const initialLoad = await loadDashboardRows(resolvedProfileResult.user.id);
+
+  if (initialLoad.error) {
+    if (isRecoverableDashboardError(initialLoad.error)) {
+      return fallback;
+    }
+
+    throw initialLoad.error;
+  }
+
+  let dashboardRows = initialLoad.data;
+
+  if (isDashboardSeedMissing(dashboardRows)) {
+    const seeded = await seedDashboardData(resolvedProfileResult.user.id);
+
+    if (!seeded) {
+      return fallback;
+    }
+
+    const reloaded = await loadDashboardRows(resolvedProfileResult.user.id);
+
+    if (reloaded.error) {
+      if (isRecoverableDashboardError(reloaded.error)) {
+        return fallback;
+      }
+
+      throw reloaded.error;
+    }
+
+    dashboardRows = reloaded.data;
+  }
+
+  return mapDashboardData(dashboardRows, profile);
+}

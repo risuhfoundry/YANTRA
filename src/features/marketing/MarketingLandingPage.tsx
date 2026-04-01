@@ -1,52 +1,38 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { motion, animate, useInView } from 'motion/react';
-import { ArrowRight, BookOpen, Globe, Menu, Palette, X } from 'lucide-react';
-import { ChatProvider, useChatWidget } from '@/src/features/chat/ChatWidget';
+import { ArrowRight, Menu, X } from 'lucide-react';
+import { ChatProvider, useChatWidgetActions } from '@/src/features/chat/ChatWidget';
 import { useOverlayLock } from '@/src/features/motion/ExperienceProvider';
+import { useScrollThreshold } from '@/src/features/motion/useScrollThreshold';
 import { yantraCtaPrompts } from '@/src/features/chat/yantra-chat';
+import {
+  marketingAcademicCards,
+  marketingAccessDetails,
+  marketingCampusHighlights,
+  marketingNavLinks,
+  marketingTickerItems,
+} from './marketing-content';
 
-const accessDetails = {
-  primary: 'AI-native learning operating system',
-  audience: 'Built for learners, institutions, and hiring partners',
-  status: 'Learner accounts are previewing now, and pilot conversations remain open for partners.',
-};
-
-const tickerItems = [
-  'AI SKILL DIAGNOSIS',
-  'PERSONALIZED ROADMAPS',
-  'CERTIFICATIONS',
-  'JOB MATCHING',
-];
-
-const academicCards = [
+const AccessRequestForm = dynamic(
+  () => import('@/src/features/access/AccessRequestForm').then((module) => module.AccessRequestForm),
   {
-    icon: <BookOpen size={32} />,
-    title: 'AI TUTORING',
-    desc: 'Yantra adapts to each learner in real time with guided lessons, feedback loops, and contextual support that keeps momentum high.',
+    loading: () => (
+      <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
+        <div className="h-6 w-32 animate-pulse rounded bg-white/10" />
+        <div className="mt-6 space-y-4">
+          <div className="h-12 animate-pulse rounded bg-white/8" />
+          <div className="h-12 animate-pulse rounded bg-white/8" />
+          <div className="h-28 animate-pulse rounded bg-white/8" />
+          <div className="h-12 w-40 animate-pulse rounded-full bg-white/12" />
+        </div>
+      </div>
+    ),
   },
-  {
-    icon: <Globe size={32} />,
-    title: 'ADAPTIVE ROADMAPS',
-    desc: 'The platform analyzes skill level, goal, and pace to generate a focused path instead of sending users through generic course clutter.',
-  },
-  {
-    icon: <Palette size={32} />,
-    title: 'PROOF & PLACEMENT',
-    desc: 'Projects, certifications, and employer-aligned signals stay connected so learning translates into visible progress and job readiness.',
-  },
-];
-
-const campusHighlights = [
-  { title: 'Students', gradient: 'from-white/[0.16] via-white/[0.05] to-transparent', height: 'h-64' },
-  { title: 'Career Switchers', gradient: 'from-white/[0.14] via-white/[0.04] to-transparent', height: 'h-96' },
-  { title: 'Institutions', gradient: 'from-white/[0.12] via-white/[0.03] to-transparent', height: 'h-80' },
-  { title: 'Hiring Partners', gradient: 'from-white/[0.18] via-white/[0.05] to-transparent', height: 'h-96' },
-  { title: 'Certification Paths', gradient: 'from-white/[0.14] via-white/[0.04] to-transparent', height: 'h-72' },
-  { title: 'Job Matching', gradient: 'from-white/[0.1] via-white/[0.03] to-transparent', height: 'h-64' },
-];
+);
 
 function FluidBackground() {
   return (
@@ -81,29 +67,16 @@ function FluidBackground() {
 }
 
 function Nav() {
-  const [scrolled, setScrolled] = useState(false);
+  const scrolled = useScrollThreshold(50);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useOverlayLock('marketing-mobile-nav', mobileMenuOpen);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const links = [
-    { label: 'Platform', href: '#about' },
-    { label: 'Capabilities', href: '#academics' },
-    { label: 'Use Cases', href: '#campus-life' },
-    { label: 'Access', href: '#contact' },
-  ];
 
   return (
     <>
       <motion.nav
         className={`fixed top-0 z-50 w-full transition-all duration-500 ${
-          scrolled ? 'border-b border-white/10 bg-black/80 backdrop-blur-xl' : 'bg-transparent py-2'
+          scrolled ? 'border-b border-white/10 bg-black/80 backdrop-blur-xl' : 'bg-transparent'
         }`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -115,15 +88,33 @@ function Nav() {
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
-            {links.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="hoverable text-xs font-bold uppercase tracking-widest text-muted transition-colors hover:text-white"
-              >
-                {link.label}
-              </a>
+            {marketingNavLinks.map((link) => (
+              link.href.startsWith('#') ? (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  data-no-route-loader="true"
+                  className="hoverable text-xs font-bold uppercase tracking-widest text-muted transition-colors hover:text-white"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="hoverable text-xs font-bold uppercase tracking-widest text-muted transition-colors hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              )
             ))}
+
+            <Link
+              href="/editor"
+              className="hoverable text-xs font-bold uppercase tracking-widest text-muted transition-colors hover:text-white"
+            >
+              Editor
+            </Link>
 
             <Link
               href="/signup"
@@ -164,25 +155,57 @@ function Nav() {
           </div>
 
           <div className="flex flex-1 flex-col items-center justify-center gap-6 py-10">
-            {links.map((link, index) => (
-              <motion.a
-                key={link.label}
-                href={link.href}
+            {marketingNavLinks.map((link, index) => (
+              link.href.startsWith('#') ? (
+                <motion.a
+                  key={link.label}
+                  href={link.href}
+                  data-no-route-loader="true"
+                  className="hoverable font-heading text-6xl uppercase tracking-widest"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </motion.a>
+              ) : (
+                <motion.div
+                  key={link.label}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Link
+                    href={link.href}
+                    className="hoverable font-heading text-6xl uppercase tracking-widest"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
+              )
+            ))}
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: marketingNavLinks.length * 0.1 }}
+            >
+              <Link
+                href="/editor"
                 className="hoverable font-heading text-6xl uppercase tracking-widest"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: index * 0.1 }}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {link.label}
-              </motion.a>
-            ))}
+                Editor
+              </Link>
+            </motion.div>
 
             <motion.div
               className="mt-8 flex w-full max-w-sm flex-col gap-4"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: links.length * 0.1 }}
+              transition={{ delay: (marketingNavLinks.length + 1) * 0.1 }}
             >
               <Link
                 href="/signup"
@@ -203,7 +226,7 @@ function Hero() {
   const title = 'YANTRA';
 
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pb-32 pt-32">
+    <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-6 pb-28 pt-28 sm:min-h-screen sm:pb-32 sm:pt-32">
       <div className="z-10 mx-auto flex w-full max-w-5xl flex-col items-center text-center">
         <motion.div
           className="mb-12 rounded-full border border-white/10 bg-white/5 px-6 py-2 text-center font-mono text-xs uppercase tracking-[0.2em] text-muted backdrop-blur-md md:mb-16 md:text-sm"
@@ -211,7 +234,7 @@ function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          AI-native learning OS • Personalized paths
+          AI-native learning OS - Personalized paths
         </motion.div>
 
         <h1 className="flex flex-wrap justify-center text-[5.5rem] leading-none font-heading tracking-normal sm:text-8xl md:text-[12rem]">
@@ -250,6 +273,12 @@ function Hero() {
           >
             Start Onboarding
           </Link>
+          <Link
+            href="/editor"
+            className="hoverable inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#7C3AED] bg-transparent px-6 py-2.5 text-center font-mono text-[11px] uppercase tracking-[0.22em] text-[#7C3AED] transition-colors duration-200 ease-in-out hover:bg-[#7C3AED] hover:text-white sm:w-auto"
+          >
+            Open Code Editor <ArrowRight size={14} />
+          </Link>
         </motion.div>
 
         <motion.p
@@ -262,7 +291,7 @@ function Hero() {
         </motion.p>
 
         <motion.div
-          className="absolute bottom-8 flex flex-col items-center gap-4"
+          className="absolute bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] flex flex-col items-center gap-4 sm:bottom-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 1 }}
@@ -285,7 +314,7 @@ function Ticker() {
       >
         {[...Array(2)].map((_, index) => (
           <div key={index} className="flex items-center gap-8">
-            {tickerItems.map((item) => (
+            {marketingTickerItems.map((item) => (
               <div key={`${index}-${item}`} className="flex items-center gap-8">
                 <span>{item}</span>
                 <div className="h-1.5 w-1.5 rounded-full bg-white/30" />
@@ -397,20 +426,26 @@ function Academics() {
       </motion.div>
 
       <div className="relative z-10 mt-16 grid gap-8 md:grid-cols-3">
-        {academicCards.map((card, index) => (
-          <motion.div
-            key={card.title}
-            initial={{ y: 50, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="hoverable group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.04]"
-          >
-            <div className="mb-6 text-white opacity-50 transition-opacity group-hover:opacity-100">{card.icon}</div>
-            <h3 className="mb-4 text-3xl font-heading tracking-wide">{card.title}</h3>
-            <p className="font-light leading-relaxed text-muted">{card.desc}</p>
-          </motion.div>
-        ))}
+        {marketingAcademicCards.map((card, index) => {
+          const Icon = card.icon;
+
+          return (
+            <motion.div
+              key={card.title}
+              initial={{ y: 50, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="hoverable group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-8 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.04]"
+            >
+              <div className="mb-6 text-white opacity-50 transition-opacity group-hover:opacity-100">
+                <Icon size={32} />
+              </div>
+              <h3 className="mb-4 text-3xl font-heading tracking-wide">{card.title}</h3>
+              <p className="font-light leading-relaxed text-muted">{card.desc}</p>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );
@@ -419,58 +454,60 @@ function Academics() {
 function Gallery() {
   return (
     <section id="campus-life" className="relative mx-auto max-w-7xl px-6 py-32 scroll-mt-28">
-      <div className="pointer-events-none absolute left-0 top-0 select-none font-heading text-[12rem] leading-none text-white/[0.03] md:text-[20rem]">
+      <div className="pointer-events-none absolute left-0 top-0 select-none font-heading text-[7rem] leading-none text-white/[0.03] sm:text-[10rem] md:text-[14rem] xl:text-[18rem]">
         03
       </div>
-      <motion.h2
-        className="relative z-10 mt-20 mb-16 text-5xl font-heading md:text-7xl"
+      <motion.div
+        className="relative z-10 mb-14 mt-16 max-w-4xl md:mb-16 md:mt-20"
         initial={{ y: 30, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, margin: '-100px' }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       >
-        WHO YANTRA SERVES
-      </motion.h2>
+        <h2 className="text-4xl font-heading tracking-[0.06em] text-white sm:text-5xl md:text-7xl">
+          WHO YANTRA SERVES
+        </h2>
+      </motion.div>
 
-      <div className="masonry-grid relative z-10">
-        {campusHighlights.map((item, index) => (
-          <motion.div
-            key={item.title}
-            initial="hidden"
-            whileInView="visible"
-            whileHover="hover"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={{
-              hidden: { y: 50, opacity: 0, scale: 1 },
-              visible: {
-                y: 0,
-                opacity: 1,
-                scale: 1,
-                transition: { duration: 0.6, delay: (index % 3) * 0.1, ease: [0.16, 1, 0.3, 1] },
-              },
-              hover: {
-                scale: 1.03,
-                y: 0,
-                opacity: 1,
-                transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
-              },
-            }}
-            className={`masonry-item hoverable relative overflow-hidden rounded-3xl border border-white/10 bg-black ${item.height}`}
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient}`} />
-            <div className="absolute inset-0 bg-white/[0.03] mix-blend-overlay" />
+      <div className="relative z-10 grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {marketingCampusHighlights.map((column, columnIndex) => (
+          <div key={`audience-column-${columnIndex}`} className="flex h-full flex-col gap-4 self-stretch">
+            {column.map((item, itemIndex) => {
+              const Icon = item.icon;
 
-            <motion.div
-              variants={{
-                hidden: { y: '100%' },
-                visible: { y: '100%', transition: { type: 'spring', stiffness: 300, damping: 30 } },
-                hover: { y: '0%', transition: { type: 'spring', stiffness: 350, damping: 25 } },
-              }}
-              className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-            >
-              <span className="font-mono text-xs font-bold uppercase tracking-widest text-white">{item.title}</span>
-            </motion.div>
-          </motion.div>
+              return (
+                <motion.article
+                  key={item.title}
+                  initial={{ y: 24, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{
+                    duration: 0.65,
+                    delay: columnIndex * 0.1 + itemIndex * 0.08,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className={`hoverable group relative flex min-h-[16rem] flex-1 flex-col justify-between overflow-hidden rounded-[1.6rem] border border-white/8 bg-[linear-gradient(145deg,rgba(16,16,16,0.96),rgba(5,5,5,0.98))] p-7 shadow-[0_24px_80px_rgba(0,0,0,0.34)] transition-all duration-300 hover:-translate-y-1 hover:border-white/14 sm:p-8 ${item.heightClassName}`}
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015)_34%,transparent_62%)] opacity-80" />
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/16 to-transparent" />
+
+                  <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/88 transition-colors duration-300 group-hover:border-white/16 group-hover:bg-white/[0.05]">
+                    <Icon size={20} strokeWidth={1.7} />
+                  </div>
+
+                  <div className="relative z-10 mt-10">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.26em] text-white/34">{item.tag}</span>
+                    <h3 className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-white sm:text-[1.7rem]">
+                      {item.title}
+                    </h3>
+                    <p className="mt-4 max-w-[24rem] text-sm leading-7 text-white/46 sm:text-[0.95rem]">
+                      {item.desc}
+                    </p>
+                  </div>
+                </motion.article>
+              );
+            })}
+          </div>
         ))}
       </div>
     </section>
@@ -478,21 +515,7 @@ function Gallery() {
 }
 
 function Contact() {
-  const { openChat } = useChatWidget();
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    message: '',
-  });
-
-  const accessMessage = [
-    yantraCtaPrompts.requestAccess,
-    form.name ? `Name: ${form.name}` : null,
-    form.email ? `Email: ${form.email}` : null,
-    form.message ? `Details: ${form.message}` : null,
-  ]
-    .filter(Boolean)
-    .join('\n');
+  const { openChat } = useChatWidgetActions();
 
   return (
     <section id="contact" className="relative mx-auto max-w-7xl border-t border-white/10 px-6 py-32 scroll-mt-28">
@@ -510,90 +533,43 @@ function Contact() {
           <div className="space-y-6 font-mono text-sm text-muted">
             <p className="flex items-start gap-4 break-words md:items-center">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-              {accessDetails.primary}
+              {marketingAccessDetails.primary}
             </p>
             <p className="flex items-start gap-4 break-words md:items-center">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" style={{ animationDelay: '0.2s' }} />
-              {accessDetails.audience}
+              {marketingAccessDetails.audience}
             </p>
             <p className="flex items-start gap-4 break-words md:items-center">
               <span className="h-2 w-2 rounded-full bg-white animate-pulse" style={{ animationDelay: '0.4s' }} />
-              {accessDetails.status}
+              {marketingAccessDetails.status}
             </p>
           </div>
+
+          <button
+            type="button"
+            className="hoverable mt-10 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-6 py-3 font-mono text-[11px] uppercase tracking-[0.2em] text-white/78 transition-colors hover:bg-white/[0.08]"
+            onClick={() => openChat({ message: yantraCtaPrompts.requestAccess })}
+          >
+            Ask Yantra First <ArrowRight size={14} />
+          </button>
         </motion.div>
 
-        <motion.form
+        <motion.div
           initial={{ x: 50, opacity: 0 }}
           whileInView={{ x: 0, opacity: 1 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
           className="flex flex-col gap-8"
-          onSubmit={(event) => {
-            event.preventDefault();
-            openChat({ message: accessMessage });
-          }}
         >
-          <div className="relative">
-            <input
-              type="text"
-              id="name"
-              placeholder=" "
-              value={form.name}
-              onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-              className="input-field hoverable peer w-full border-b border-border bg-transparent py-3 text-white transition-colors focus:border-accent focus:outline-none"
-            />
-            <label
-              htmlFor="name"
-              className="input-label pointer-events-none absolute left-0 top-3 font-mono text-sm text-muted transition-all duration-300"
-            >
-              Full Name
-            </label>
-          </div>
-          <div className="relative">
-            <input
-              type="email"
-              id="email"
-              placeholder=" "
-              value={form.email}
-              onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-              className="input-field hoverable peer w-full border-b border-border bg-transparent py-3 text-white transition-colors focus:border-accent focus:outline-none"
-            />
-            <label
-              htmlFor="email"
-              className="input-label pointer-events-none absolute left-0 top-3 font-mono text-sm text-muted transition-all duration-300"
-            >
-              Work or Personal Email
-            </label>
-          </div>
-          <div className="relative">
-            <textarea
-              id="message"
-              rows={4}
-              placeholder=" "
-              value={form.message}
-              onChange={(event) => setForm((current) => ({ ...current, message: event.target.value }))}
-              className="input-field hoverable peer w-full resize-none border-b border-border bg-transparent py-3 text-white transition-colors focus:border-accent focus:outline-none"
-            />
-            <label
-              htmlFor="message"
-              className="input-label pointer-events-none absolute left-0 top-3 font-mono text-sm text-muted transition-all duration-300"
-            >
-              Tell us if you are a learner, institution, or hiring partner
-            </label>
-          </div>
-
-          <button className="hoverable mt-4 flex items-center gap-2 self-start rounded-full bg-white px-8 py-4 text-sm font-bold uppercase tracking-widest text-black transition-transform duration-300 hover:scale-105">
-            Request Access <ArrowRight size={16} />
-          </button>
-        </motion.form>
+          <AccessRequestForm className="flex flex-col gap-8" />
+        </motion.div>
       </div>
     </section>
   );
 }
 
 function Footer() {
-  const { openChat } = useChatWidget();
+  const { openChat } = useChatWidgetActions();
 
   return (
     <footer className="relative mt-32 overflow-hidden border-t border-white/10 px-6 py-12">
@@ -602,7 +578,7 @@ function Footer() {
           YANTRA<span className="text-white/50">.</span>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-6 font-mono text-xs uppercase tracking-widest text-muted">
-          <a href="#about" className="hoverable transition-colors hover:text-white">
+          <a href="#about" data-no-route-loader="true" className="hoverable transition-colors hover:text-white">
             Platform
           </a>
           <button
@@ -627,7 +603,7 @@ function Footer() {
 export default function MarketingLandingPage() {
   return (
     <ChatProvider>
-      <div className="min-h-screen bg-transparent text-white selection:bg-white selection:text-black">
+      <div className="min-h-[100svh] bg-transparent text-white selection:bg-white selection:text-black sm:min-h-screen">
         <FluidBackground />
         <Nav />
         <main>

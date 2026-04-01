@@ -4,7 +4,7 @@
 
 This file tracks the non-runtime materials currently informing the build.
 
-These assets have been moved into `docs/reference/` so the repo root stays focused on runtime code.
+These assets live under `docs/reference/` so the repo root stays focused on runtime code.
 
 ## Dashboard Design Inputs
 
@@ -23,6 +23,18 @@ These assets have been moved into `docs/reference/` so the repo root stays focus
 - visual screenshot of the dashboard target state
 - used to align composition, spacing, and hierarchy
 
+## Login And Signup Design Inputs
+
+### `docs/reference/Login-signup-sample/Login/`
+
+- login reference HTML, screenshot, and design notes
+- useful for auth atmosphere, layout proportion, and hierarchy
+
+### `docs/reference/Login-signup-sample/sing up/`
+
+- signup reference HTML, screenshot, and design notes
+- note that the folder name is currently spelled `sing up` in the workspace
+
 ## Build Plan Inputs
 
 ### `docs/reference/build-plan/Yantra_AI_Build_Plan.pdf`
@@ -37,7 +49,7 @@ These assets have been moved into `docs/reference/` so the repo root stays focus
 
 ## How To Use These Assets
 
-- use them as product and design references
+- use them as design and product references
 - do not treat them as the exact implementation contract
 - prefer the live codebase and docs folder as the current source of truth
 
@@ -45,6 +57,8 @@ These assets have been moved into `docs/reference/` so the repo root stays focus
 
 ```text
 docs/reference/
+|-- Login-signup-sample/
+|-- build-plan/
 |-- dashboard-sample/
-`-- build-plan/
+`-- SOURCE_ASSETS.md
 ```

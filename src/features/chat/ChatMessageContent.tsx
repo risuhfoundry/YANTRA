@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import KatexStyleLoader from './KatexStyleLoader';
 
 type ChatMessageContentProps = {
   content: string;
@@ -20,6 +21,7 @@ export default function ChatMessageContent({ content, variant }: ChatMessageCont
 
   return (
     <div className={`yantra-markdown space-y-4 text-sm leading-relaxed ${proseTextClass}`}>
+      <KatexStyleLoader />
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}

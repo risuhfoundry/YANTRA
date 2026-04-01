@@ -2,14 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { BadgeCheck, PencilLine, School } from 'lucide-react';
-
-export type StudentProfile = {
-  name: string;
-  classDesignation: string;
-  skillLevel: 'Beginner' | 'Intermediate' | 'Advanced';
-  progress: number;
-  academicYear: string;
-};
+import { type StudentProfile } from './student-profile-model';
 
 export type StudentProfileCardHandle = {
   openEditor: () => void;
@@ -18,8 +11,13 @@ export type StudentProfileCardHandle = {
 
 type StudentProfileCardProps = {
   profile: StudentProfile;
-  onSave: (profile: StudentProfile) => void;
+  onSave: (profile: StudentProfile) => Promise<void> | void;
 };
+
+const profileCardSurfaceClassName =
+  'relative overflow-hidden rounded-[1.5rem] border border-white/8 bg-white/[0.04] p-5 shadow-[0_20px_54px_rgba(0,0,0,0.22)] backdrop-blur-[24px] sm:rounded-[1.75rem] sm:p-6 lg:rounded-[2rem] lg:p-8';
+const profileCardInputClassName =
+  'w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-white outline-none transition-all focus:border-white/40 focus:bg-white/[0.07] cursor-text';
 
 const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCardProps>(function StudentProfileCard(
   { profile, onSave },
@@ -27,6 +25,7 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
 ) {
   const [draft, setDraft] = useState<StudentProfile>(profile);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setDraft(profile);
@@ -55,31 +54,37 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
     setIsEditing((current) => !current);
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     const nextProfile = {
       ...draft,
       progress: Math.max(0, Math.min(100, draft.progress)),
     };
 
-    setDraft(nextProfile);
-    setIsEditing(false);
-    onSave(nextProfile);
+    setIsSaving(true);
+
+    try {
+      await onSave(nextProfile);
+      setDraft(nextProfile);
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const studentInitial = profile.name.trim().charAt(0).toUpperCase() || 'A';
 
   return (
     <section className="group relative lg:col-span-5">
-      <div className="absolute -inset-10 rounded-full bg-white/[0.05] opacity-0 blur-[100px] transition-opacity duration-700 group-hover:opacity-100" />
-
-      <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 backdrop-blur-[40px]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(255,255,255,0.08)_0%,transparent_52%)]" />
+      <div className={profileCardSurfaceClassName}>
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(255,255,255,0.05)_0%,transparent_52%)]" />
+        <div className="pointer-events-none absolute right-[-16%] top-[-14%] h-28 w-28 rounded-full bg-white/[0.03] blur-[56px]" />
 
         {!isEditing ? (
-          <div className="relative space-y-8">
-            <div className="flex items-start justify-between gap-6">
-              <div className="flex h-24 w-24 items-center justify-center rounded-[1.5rem] border border-white/20 bg-white/[0.08]">
-                <span className="font-display text-4xl font-bold text-white">{studentInitial}</span>
+          <div className="relative space-y-6 sm:space-y-8">
+            <div className="flex items-start justify-between gap-4 sm:gap-6">
+              <div className="flex h-20 w-20 items-center justify-center rounded-[1.25rem] border border-white/20 bg-white/[0.08] sm:h-24 sm:w-24 sm:rounded-[1.5rem]">
+                <span className="font-display text-3xl font-bold text-white sm:text-4xl">{studentInitial}</span>
               </div>
 
               <div className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1">
@@ -88,8 +93,8 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
             </div>
 
             <div>
-              <h2 className="font-display text-4xl font-bold tracking-tight text-white">{profile.name}</h2>
-              <p className="mt-1 text-white/56">{profile.classDesignation} - Academic Year {profile.academicYear}</p>
+              <h2 className="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">{profile.name}</h2>
+              <p className="mt-1 text-sm text-white/56 sm:text-base">{profile.classDesignation} - Academic Year {profile.academicYear}</p>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -106,7 +111,7 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
 
             <div className="space-y-3">
               <div className="flex items-end justify-between gap-4">
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">Syllabus Completion</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/40 sm:tracking-[0.18em]">Syllabus Completion</span>
                 <span className="font-display text-2xl font-bold text-white">{profile.progress}%</span>
               </div>
               <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
@@ -117,10 +122,10 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
               </div>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-2 sm:pt-4">
               <button
                 type="button"
-                className="w-full rounded-[1.5rem] bg-white py-4 font-semibold text-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                className="w-full rounded-[1.25rem] bg-white py-3.5 font-semibold text-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer sm:rounded-[1.5rem] sm:py-4"
                 onClick={handleToggleEdit}
               >
                 Edit Profile
@@ -128,12 +133,12 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
             </div>
           </div>
         ) : (
-          <div className="relative space-y-6">
-            <div className="mb-8 flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-[1.2rem] border border-white/10 bg-white/[0.05]">
+          <div className="relative space-y-5 sm:space-y-6">
+            <div className="mb-6 flex items-center gap-4 sm:mb-8">
+              <div className="flex h-11 w-11 items-center justify-center rounded-[1rem] border border-white/10 bg-white/[0.05] sm:h-12 sm:w-12 sm:rounded-[1.2rem]">
                 <PencilLine size={20} className="text-white/60" />
               </div>
-              <h3 className="font-display text-xl font-bold text-white">Modify Record</h3>
+              <h3 className="font-display text-lg font-bold text-white sm:text-xl">Modify Record</h3>
             </div>
 
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1">
@@ -148,7 +153,7 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
                   type="text"
                   value={draft.name}
                   onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-white outline-none transition-all focus:border-white/40 cursor-text"
+                  className={profileCardInputClassName}
                 />
               </div>
 
@@ -158,11 +163,11 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
                   type="text"
                   value={draft.classDesignation}
                   onChange={(event) => setDraft((current) => ({ ...current, classDesignation: event.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-white outline-none transition-all focus:border-white/40 cursor-text"
+                  className={profileCardInputClassName}
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="block font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">Skill Level</label>
                   <select
@@ -173,7 +178,7 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
                         skillLevel: event.target.value as StudentProfile['skillLevel'],
                       }))
                     }
-                    className="w-full appearance-none rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-white outline-none transition-all focus:border-white/40 cursor-pointer"
+                    className="w-full appearance-none rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-white outline-none transition-all focus:border-white/40 focus:bg-white/[0.07] cursor-pointer"
                   >
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
@@ -198,18 +203,20 @@ const StudentProfileCard = forwardRef<StudentProfileCardHandle, StudentProfileCa
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 pt-6">
+            <div className="flex flex-col gap-3 pt-4 sm:pt-6">
               <button
                 type="button"
-                className="w-full rounded-[1.5rem] bg-white py-4 font-semibold text-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                className="w-full rounded-[1.25rem] bg-white py-3.5 font-semibold text-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-white/45 cursor-pointer sm:rounded-[1.5rem] sm:py-4"
                 onClick={handleSaveProfile}
+                disabled={isSaving}
               >
-                Save Profile
+                {isSaving ? 'Saving Profile...' : 'Save Profile'}
               </button>
               <button
                 type="button"
-                className="w-full rounded-[1.5rem] border border-white/10 bg-white/[0.05] py-4 font-semibold text-white transition-all duration-300 hover:bg-white/[0.1] cursor-pointer"
+                className="w-full rounded-[1.25rem] border border-white/10 bg-white/[0.05] py-3.5 font-semibold text-white transition-all duration-300 hover:bg-white/[0.1] cursor-pointer sm:rounded-[1.5rem] sm:py-4"
                 onClick={handleToggleEdit}
+                disabled={isSaving}
               >
                 Cancel
               </button>

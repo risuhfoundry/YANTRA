@@ -6,9 +6,58 @@ type AccessRequestFormState = 'idle' | 'loading' | 'success' | 'error';
 
 interface AccessRequestFormProps {
   onSuccess?: () => void;
+  className?: string;
 }
 
-export function AccessRequestForm({ onSuccess }: AccessRequestFormProps) {
+function Field({
+  id,
+  label,
+  value,
+  onChange,
+  type = 'text',
+  multiline = false,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  multiline?: boolean;
+}) {
+  const sharedClassName =
+    'input-field hoverable peer w-full border-b border-white/12 bg-transparent py-3 text-white transition-colors focus:border-white focus:outline-none';
+  const labelClassName =
+    'input-label pointer-events-none absolute left-0 top-3 font-mono text-sm text-white/42 transition-all duration-300';
+
+  return (
+    <div className="relative">
+      {multiline ? (
+        <textarea
+          id={id}
+          rows={4}
+          placeholder=" "
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={`${sharedClassName} resize-none`}
+        />
+      ) : (
+        <input
+          id={id}
+          type={type}
+          placeholder=" "
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={sharedClassName}
+        />
+      )}
+      <label htmlFor={id} className={labelClassName}>
+        {label}
+      </label>
+    </div>
+  );
+}
+
+export function AccessRequestForm({ onSuccess, className }: AccessRequestFormProps) {
   const [state, setState] = useState<AccessRequestFormState>('idle');
   const [error, setError] = useState<string>('');
   const [formData, setFormData] = useState({
@@ -21,6 +70,13 @@ export function AccessRequestForm({ onSuccess }: AccessRequestFormProps) {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
+      [name]: value,
+    }));
+  };
+
+  const updateField = (name: keyof typeof formData, value: string) => {
+    setFormData((current) => ({
+      ...current,
       [name]: value,
     }));
   };
@@ -58,58 +114,31 @@ export function AccessRequestForm({ onSuccess }: AccessRequestFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          Name
-        </label>
-        <input
-          id="name"
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-          placeholder="Your name"
-          className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
-        />
-      </div>
+    <form onSubmit={handleSubmit} className={className ?? 'flex flex-col gap-8'}>
+      <Field id="name" label="Full Name" value={formData.name} onChange={(value) => updateField('name', value)} />
+      <Field
+        id="email"
+        type="email"
+        label="Work or Personal Email"
+        value={formData.email}
+        onChange={(value) => updateField('email', value)}
+      />
+      <Field
+        id="message"
+        label="Tell us if you are a learner, institution, or hiring partner"
+        value={formData.message}
+        onChange={(value) => updateField('message', value)}
+        multiline
+      />
 
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          placeholder="your@email.com"
-          className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="message" className="block text-sm font-medium text-gray-700">
-          Tell us why you want access (optional)
-        </label>
-        <textarea
-          id="message"
-          name="message"
-          value={formData.message}
-          onChange={handleChange}
-          placeholder="e.g., I want to learn AI and improve my programming skills..."
-          rows={4}
-          className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
-        />
-      </div>
-
-      {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {error && (
+        <div className="rounded-[1.5rem] border border-red-400/20 bg-red-500/10 px-4 py-4 text-sm text-red-100">
+          {error}
+        </div>
+      )}
 
       {state === 'success' && (
-        <div className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
+        <div className="rounded-[1.5rem] border border-white/12 bg-white/[0.05] px-4 py-4 text-sm text-white/82">
           ✓ Your access request has been received. We will reach out to you soon!
         </div>
       )}
@@ -117,7 +146,7 @@ export function AccessRequestForm({ onSuccess }: AccessRequestFormProps) {
       <button
         type="submit"
         disabled={state === 'loading'}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
+        className="hoverable mt-2 flex items-center gap-2 self-start rounded-full bg-white px-8 py-4 text-sm font-bold uppercase tracking-widest text-black transition-transform duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:bg-white/40"
       >
         {state === 'loading' ? 'Submitting...' : 'Request Access'}
       </button>

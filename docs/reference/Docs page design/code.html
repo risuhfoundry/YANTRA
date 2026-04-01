@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>YANTRA | Documentation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-container": "#000000",
+              "outline-variant": "#474747",
+              "on-secondary": "#1a1b22",
+              "secondary": "#c6c5cf",
+              "on-secondary-fixed": "#1a1b22",
+              "surface-container-high": "#2a2a2a",
+              "secondary-fixed-dim": "#abaab4",
+              "surface-dim": "#131313",
+              "surface-container-highest": "#353535",
+              "surface-container-lowest": "#0e0e0e",
+              "outline": "#919191",
+              "primary-fixed": "#5d5f5f",
+              "on-tertiary-container": "#000000",
+              "surface-container": "#1f1f1f",
+              "primary-container": "#d4d4d4",
+              "secondary-fixed": "#c6c5cf",
+              "on-primary-fixed-variant": "#e2e2e2",
+              "surface-tint": "#c6c6c7",
+              "tertiary-fixed": "#5f5e61",
+              "background": "#131313",
+              "secondary-container": "#46464e",
+              "inverse-primary": "#5d5f5f",
+              "tertiary-container": "#919094",
+              "tertiary": "#e4e1e5",
+              "primary-fixed-dim": "#454747",
+              "on-primary": "#1a1c1c",
+              "inverse-on-surface": "#303030",
+              "tertiary-fixed-dim": "#47464a",
+              "on-error-container": "#ffdad6",
+              "on-error": "#690005",
+              "surface-container-low": "#1b1b1b",
+              "on-secondary-container": "#e3e1ec",
+              "surface-bright": "#393939",
+              "on-primary-fixed": "#ffffff",
+              "on-tertiary-fixed-variant": "#e4e1e5",
+              "surface": "#131313",
+              "on-surface": "#e2e2e2",
+              "on-tertiary-fixed": "#ffffff",
+              "error": "#ffb4ab",
+              "primary": "#ffffff",
+              "error-container": "#93000a",
+              "on-tertiary": "#1b1b1e",
+              "surface-variant": "#353535",
+              "on-surface-variant": "#c6c6c6",
+              "on-secondary-fixed-variant": "#3a3b43",
+              "on-background": "#e2e2e2",
+              "inverse-surface": "#e2e2e2"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(31, 31, 31, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .radial-glow {
+            background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, rgba(19,19,19,0) 70%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#131313]/80 backdrop-blur-xl flex justify-between items-center px-8 h-20 w-full">
+<div class="text-2xl font-bold tracking-tighter text-white italic font-headline">YANTRA</div>
+<div class="hidden md:flex items-center gap-12">
+<a class="font-['Space_Grotesk'] tracking-tight uppercase text-xs font-bold text-white border-b border-white pb-1 transition-all duration-300" href="#">Guides</a>
+<a class="font-['Space_Grotesk'] tracking-tight uppercase text-xs font-bold text-white/40 hover:text-white/80 transition-all duration-300" href="#">API</a>
+<a class="font-['Space_Grotesk'] tracking-tight uppercase text-xs font-bold text-white/40 hover:text-white/80 transition-all duration-300" href="#">Components</a>
+<a class="font-['Space_Grotesk'] tracking-tight uppercase text-xs font-bold text-white/40 hover:text-white/80 transition-all duration-300" href="#">Showcase</a>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-white/40 cursor-pointer hover:text-white transition-colors" data-icon="dark_mode">dark_mode</span>
+<span class="material-symbols-outlined text-white/40 cursor-pointer hover:text-white transition-colors" data-icon="github">hub</span>
+</div>
+<div class="bg-[#1b1b1b] h-[1px] w-full absolute bottom-0 opacity-20"></div>
+</nav>
+<!-- SideNavBar (Desktop Only) -->
+<aside class="hidden lg:flex fixed left-0 top-20 flex flex-col pt-12 pb-8 px-6 h-screen w-72 border-r border-white/5 bg-[#131313]">
+<div class="mb-10 px-4">
+<h3 class="font-['Space_Grotesk'] uppercase tracking-[0.2em] text-[10px] text-white/40">DOCUMENTATION</h3>
+<p class="font-['Space_Grotesk'] text-[9px] text-white/20 mt-1">v2.4.0-obsidian</p>
+</div>
+<div class="flex flex-col gap-2 flex-grow">
+<a class="flex items-center gap-3 bg-white/5 text-white rounded-full px-4 py-2 shadow-[0_0_20px_rgba(255,255,255,0.05)] font-['Space_Grotesk'] uppercase tracking-[0.2em] text-[10px]" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="info">info</span>
+                Introduction
+            </a>
+<a class="flex items-center gap-3 text-white/30 px-4 py-2 hover:text-white/60 transition-colors font-['Space_Grotesk'] uppercase tracking-[0.2em] text-[10px]" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="rocket_launch">rocket_launch</span>
+                Quick Start
+            </a>
+<a class="flex items-center gap-3 text-white/30 px-4 py-2 hover:text-white/60 transition-colors font-['Space_Grotesk'] uppercase tracking-[0.2em] text-[10px]" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="account_tree">account_tree</span>
+                Architecture
+            </a>
+<a class="flex items-center gap-3 text-white/30 px-4 py-2 hover:text-white/60 transition-colors font-['Space_Grotesk'] uppercase tracking-[0.2em] text-[10px]" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="extension">extension</span>
+                Core Modules
+            </a>
+<a class="flex items-center gap-3 text-white/30 px-4 py-2 hover:text-white/60 transition-colors font-['Space_Grotesk'] uppercase tracking-[0.2em] text-[10px]" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="auto_awesome">auto_awesome</span>
+                Deployment
+            </a>
+<a class="flex items-center gap-3 text-white/30 px-4 py-2 hover:text-white/60 transition-colors font-['Space_Grotesk'] uppercase tracking-[0.2em] text-[10px]" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="shield">shield</span>
+                Security
+            </a>
+</div>
+<div class="mt-auto flex flex-col gap-4 border-t border-white/5 pt-8">
+<a class="flex items-center gap-3 text-white/30 px-4 py-2 hover:text-white/60 transition-colors font-['Space_Grotesk'] uppercase tracking-[0.2em] text-[10px]" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="history">history</span>
+                Changelog
+            </a>
+<a class="flex items-center gap-3 text-white/30 px-4 py-2 hover:text-white/60 transition-colors font-['Space_Grotesk'] uppercase tracking-[0.2em] text-[10px]" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="sensors">sensors</span>
+                Status
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-72 pt-32 pb-24 px-8 md:px-16 max-w-7xl mx-auto relative">
+<!-- Ambient Background Glows -->
+<div class="fixed top-0 right-0 w-[800px] h-[800px] radial-glow opacity-30 pointer-events-none -z-10 translate-x-1/2 -translate-y-1/2"></div>
+<div class="fixed bottom-0 left-0 w-[600px] h-[600px] radial-glow opacity-20 pointer-events-none -z-10 -translate-x-1/3 translate-y-1/3"></div>
+<!-- Hero Section -->
+<header class="mb-24 max-w-3xl">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-pulse"></div>
+<span class="font-label uppercase tracking-[0.3em] text-[10px] text-primary/60">AI-Native OS Protocol</span>
+</div>
+<h1 class="text-6xl md:text-8xl font-headline font-bold tracking-tighter leading-none mb-8 text-white">
+                DOCUMENTATION
+            </h1>
+<p class="text-xl text-on-surface-variant font-light leading-relaxed mb-12">
+                Engineered for clarity and deep focus. Everything you need to architect, deploy, and scale with the Yantra AI-native operating system.
+            </p>
+<!-- Search Bar -->
+<div class="relative max-w-2xl group">
+<div class="absolute inset-y-0 left-6 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-white/40 group-focus-within:text-white transition-colors" data-icon="search">search</span>
+</div>
+<input class="w-full bg-surface-container-low/40 backdrop-blur-md border border-white/5 rounded-full py-6 pl-16 pr-8 text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-white/20 transition-all shadow-xl" placeholder="Search documentation, modules, or API reference..." type="text"/>
+<div class="absolute inset-y-0 right-6 flex items-center">
+<div class="px-2 py-1 rounded bg-white/5 border border-white/10 text-[10px] text-white/30 font-label tracking-widest uppercase">
+                        ⌘ K
+                    </div>
+</div>
+</div>
+</header>
+<!-- Quick-Start Grid (Bento Style) -->
+<section class="mb-32">
+<h2 class="font-label uppercase tracking-[0.3em] text-[11px] text-white/40 mb-8 px-2">Quick Start Protocols</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="group relative bg-surface-container-low/30 hover:bg-surface-container-high/40 transition-all duration-500 rounded-lg p-8 border border-white/5 overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl" data-icon="person_add">person_add</span>
+</div>
+<div class="relative z-10">
+<span class="material-symbols-outlined text-primary mb-6" data-icon="person_add" data-weight="fill">person_add</span>
+<h3 class="text-xl font-headline font-bold text-white mb-3">Create Account</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Initialize your identity within the Yantra distributed network.</p>
+<div class="mt-8 flex items-center gap-2 text-[10px] font-label uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+                            Initialize <span class="material-symbols-outlined text-xs" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative bg-surface-container-low/30 hover:bg-surface-container-high/40 transition-all duration-500 rounded-lg p-8 border border-white/5 overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="relative z-10">
+<span class="material-symbols-outlined text-primary mb-6" data-icon="auto_awesome" data-weight="fill">auto_awesome</span>
+<h3 class="text-xl font-headline font-bold text-white mb-3">Start Onboarding</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Step-by-step guidance for setting up your first AI workspace.</p>
+<div class="mt-8 flex items-center gap-2 text-[10px] font-label uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+                            Configure <span class="material-symbols-outlined text-xs" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative bg-surface-container-low/30 hover:bg-surface-container-high/40 transition-all duration-500 rounded-lg p-8 border border-white/5 overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl" data-icon="key">key</span>
+</div>
+<div class="relative z-10">
+<span class="material-symbols-outlined text-primary mb-6" data-icon="key" data-weight="fill">key</span>
+<h3 class="text-xl font-headline font-bold text-white mb-3">Reset Password</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Secure recovery mechanisms for your cryptographic keys.</p>
+<div class="mt-8 flex items-center gap-2 text-[10px] font-label uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+                            Recover <span class="material-symbols-outlined text-xs" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Category Sections -->
+<div class="space-y-32">
+<!-- 01 Getting Started -->
+<section class="relative">
+<div class="absolute -left-20 -top-12 text-[12rem] font-headline font-extrabold text-white/[0.03] select-none pointer-events-none">01</div>
+<div class="flex flex-col md:flex-row gap-12 items-start relative z-10">
+<div class="md:w-1/3">
+<h2 class="text-3xl font-headline font-bold text-white mb-4">Getting Started</h2>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">Foundational concepts for understanding the Yantra kernel and communication layers.</p>
+<button class="bg-primary text-on-primary px-8 py-3 rounded-xl font-label uppercase text-[10px] tracking-widest hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all active:scale-95">Explore Basics</button>
+</div>
+<div class="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+<a class="p-6 rounded-lg bg-surface-container/30 border border-white/5 hover:border-white/20 transition-colors" href="#">
+<h4 class="text-white text-sm font-bold mb-2">Introduction</h4>
+<p class="text-xs text-on-surface-variant">The core philosophy of AI-native architecture.</p>
+</a>
+<a class="p-6 rounded-lg bg-surface-container/30 border border-white/5 hover:border-white/20 transition-colors" href="#">
+<h4 class="text-white text-sm font-bold mb-2">Installation</h4>
+<p class="text-xs text-on-surface-variant">Setting up your local dev environment.</p>
+</a>
+<a class="p-6 rounded-lg bg-surface-container/30 border border-white/5 hover:border-white/20 transition-colors" href="#">
+<h4 class="text-white text-sm font-bold mb-2">Hello World</h4>
+<p class="text-xs text-on-surface-variant">Your first automated agent in 5 minutes.</p>
+</a>
+<a class="p-6 rounded-lg bg-surface-container/30 border border-white/5 hover:border-white/20 transition-colors" href="#">
+<h4 class="text-white text-sm font-bold mb-2">CLI Tools</h4>
+<p class="text-xs text-on-surface-variant">Command-line mastery for power users.</p>
+</a>
+</div>
+</div>
+</section>
+<!-- 02 Product -->
+<section class="relative">
+<div class="absolute -left-20 -top-12 text-[12rem] font-headline font-extrabold text-white/[0.03] select-none pointer-events-none">02</div>
+<div class="flex flex-col md:flex-row-reverse gap-12 items-start relative z-10">
+<div class="md:w-1/3">
+<h2 class="text-3xl font-headline font-bold text-white mb-4">Product</h2>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">Deep dives into the specific modules and UI components available in the ecosystem.</p>
+</div>
+<div class="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+<a class="p-6 rounded-lg bg-surface-container/30 border border-white/5 hover:border-white/20 transition-colors" href="#">
+<h4 class="text-white text-sm font-bold mb-2">Neural Workspace</h4>
+<p class="text-xs text-on-surface-variant">The main dashboard interface and customization.</p>
+</a>
+<a class="p-6 rounded-lg bg-surface-container/30 border border-white/5 hover:border-white/20 transition-colors" href="#">
+<h4 class="text-white text-sm font-bold mb-2">Context Engines</h4>
+<p class="text-xs text-on-surface-variant">How Yantra maintains state across sessions.</p>
+</a>
+</div>
+</div>
+</section>
+<!-- 03 Account & Security -->
+<section class="relative">
+<div class="absolute -left-20 -top-12 text-[12rem] font-headline font-extrabold text-white/[0.03] select-none pointer-events-none">03</div>
+<div class="flex flex-col md:flex-row gap-12 items-start relative z-10">
+<div class="md:w-1/3">
+<h2 class="text-3xl font-headline font-bold text-white mb-4">Security</h2>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">Encryption standards, privacy protocols, and account management safety.</p>
+</div>
+<div class="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+<a class="p-6 rounded-lg bg-surface-container/30 border border-white/5 hover:border-white/20 transition-colors" href="#">
+<h4 class="text-white text-sm font-bold mb-2">2FA / Keys</h4>
+<p class="text-xs text-on-surface-variant">Hardware keys and biometric authentication.</p>
+</a>
+<a class="p-6 rounded-lg bg-surface-container/30 border border-white/5 hover:border-white/20 transition-colors" href="#">
+<h4 class="text-white text-sm font-bold mb-2">Zero-Trust</h4>
+<p class="text-xs text-on-surface-variant">How our architecture protects your data.</p>
+</a>
+</div>
+</div>
+</section>
+</div>
+<!-- Feedback Section -->
+<section class="mt-40 p-12 rounded-lg bg-surface-container-low border border-white/5 text-center max-w-2xl mx-auto">
+<h3 class="text-2xl font-headline font-bold text-white mb-4">Was this documentation helpful?</h3>
+<p class="text-on-surface-variant text-sm mb-8">Your feedback helps us refine the obsidian experience.</p>
+<div class="flex justify-center gap-4">
+<button class="flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 hover:bg-white/5 transition-colors font-label text-[10px] uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm" data-icon="thumb_up">thumb_up</span> Yes
+                </button>
+<button class="flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 hover:bg-white/5 transition-colors font-label text-[10px] uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm" data-icon="thumb_down">thumb_down</span> No
+                </button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 border-t border-white/5 bg-[#131313] flex flex-col items-center gap-4 w-full mt-auto">
+<div class="flex gap-8 mb-4">
+<a class="font-['Space_Grotesk'] text-[9px] tracking-widest uppercase text-white/20 hover:text-white transition-opacity" href="#">Privacy</a>
+<a class="font-['Space_Grotesk'] text-[9px] tracking-widest uppercase text-white/20 hover:text-white transition-opacity" href="#">Terms</a>
+<a class="font-['Space_Grotesk'] text-[9px] tracking-widest uppercase text-white/20 hover:text-white transition-opacity" href="#">Security</a>
+<a class="font-['Space_Grotesk'] text-[9px] tracking-widest uppercase text-white/20 hover:text-white transition-opacity" href="#">Contact</a>
+</div>
+<p class="font-['Space_Grotesk'] text-[9px] tracking-widest uppercase text-white/20">
+            © 2024 YANTRA PROTOCOL. ALL RIGHTS RESERVED.
+        </p>
+</footer>
+</body></html>

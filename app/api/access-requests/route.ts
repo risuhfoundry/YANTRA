@@ -1,4 +1,10 @@
 import { NextResponse } from 'next/server';
+import {
+  createAccessRequest,
+  normalizeAccessRequest,
+  validateAccessRequest,
+} from '@/src/lib/supabase/access-requests';
+import { hasSupabaseEnv } from '@/src/lib/supabase/env';
 
 export const runtime = 'nodejs';
 
@@ -8,44 +14,20 @@ type AccessRequestBody = {
   message?: string;
 };
 
-function validateAccessRequest(data: AccessRequestBody) {
-  const errors: string[] = [];
-
-  if (!data.email || typeof data.email !== 'string') {
-    errors.push('Email is required');
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.push('Valid email is required');
-  }
-
-  if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
-    errors.push('Name is required');
-  }
-
-  if (data.message && typeof data.message !== 'string') {
-    errors.push('Message must be text');
-  }
-
-  return errors;
-}
-
 export async function POST(request: Request) {
+  if (!hasSupabaseEnv()) {
+    return NextResponse.json({ error: 'Supabase is not configured yet.' }, { status: 500 });
+  }
+
   try {
     const body = (await request.json()) as AccessRequestBody;
 
-    // Validate request
     const errors = validateAccessRequest(body);
     if (errors.length > 0) {
       return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
     }
 
-    // TODO: Store the request in a database
-    // For now, just log it and return success
-    console.log('Access request received:', {
-      name: body.name,
-      email: body.email,
-      message: body.message,
-      timestamp: new Date().toISOString(),
-    });
+    await createAccessRequest(normalizeAccessRequest(body));
 
     return NextResponse.json(
       {

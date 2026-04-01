@@ -2,92 +2,88 @@
 
 ## What Yantra Is
 
-Yantra is being built as an AI-native learning operating system, not just a course website.
+Yantra is being built as an AI-native learning operating system rather than a conventional course catalog.
 
 The current product direction combines:
 
 - guided AI tutoring
-- skill-based learning paths
-- hands-on practice rooms
-- portfolio and career-facing outcomes
-- classroom and smartboard potential over time
+- account-based learner identity
+- a persistent student profile
+- a protected dashboard surface
+- future-facing practice-room and career-outcome positioning
 
 ## Primary Users
 
 - school students learning AI and CS fundamentals
 - college students building practical technical depth
 - self-learners and career switchers
-- schools and institutions
+- schools and institutions evaluating AI-learning programs
 - future hiring and partner stakeholders
 
-## Current Live Product Surfaces
+## What Is Live In The Product Today
 
-### Public Marketing Site
+### Public marketing experience
 
 The landing page currently communicates:
 
-- personalized learning
 - AI-native teaching
-- certifications and proof of skill
-- job readiness and employer alignment
-- early access and waitlist positioning
+- adaptive learning paths
+- certifications and proof-of-skill positioning
+- job-readiness and employer alignment
+- access and onboarding intent
 
-### Student Dashboard Concept
+### Auth and account layer
 
-The dashboard currently communicates:
+The product now has:
 
-- student momentum
-- roadmap progress
-- next learning step
-- practice room entry points
-- contextual AI support
+- signup
+- login
+- email confirmation callback handling
+- sign-out
+- protected dashboard access
 
-### AI Teacher Chat
+### Learner profile foundation
+
+The product now has:
+
+- a persisted learner profile
+- first-time profile seeding
+- profile editing from `/dashboard/student-profile`
+
+### AI teacher chat
 
 The live chat experience currently acts as:
 
 - a product explainer
 - a lightweight AI teacher
-- a waitlist/access CTA surface
-- a context-aware assistant from the dashboard
+- a guided entry point from marketing and dashboard surfaces
+
+## What Is Not Live Yet
+
+- real adaptive roadmap generation
+- dynamic dashboard metrics
+- persistent chat memory
+- true practice-room tooling
+- analytics, teacher dashboards, classroom workflows, and certifications
 
 ## Product Promise
 
 Yantra is trying to solve the guidance gap in technical learning:
 
-- students do not know what to learn next
+- learners do not know what to learn next
 - passive content does not create mastery
-- learners need structured practice, not only explanation
-- schools need practical AI education that is affordable and deployable
+- learners need structured practice, not just explanation
+- institutions need practical AI education that can evolve into measurable outcomes
 
 ## Current Product Status
 
-Today the repository is still an early product shell:
+The repository is now past the pure mockup phase, but it is still early.
 
-- the branding and public story are live
-- dashboard presentation is live
-- AI chat is live
-- personalization is not yet real
-- roadmap logic is not yet connected to data
-- practice rooms are not yet implemented as real labs
+Accurate framing:
 
-## Long-Term Direction From The Build Plan
+- identity and profile foundations are real
+- the public story is real
+- chat is real
+- most learning-system logic is still conceptual or presentation-only
 
-The build-plan materials point toward a bigger platform with:
-
-- AI teacher persona and memory
-- practice rooms or "Voids"
-- smartboard mode
-- curriculum engine
-- analytics and certifications
-- institutional adoption
-- job matching and employer-facing signals
-
-## Working Product Principle
-
-Every future feature should reinforce one of these outcomes:
-
-- help a learner understand
-- help a learner practice
-- help a learner see what comes next
-- help a learner prove progress
+Future work should build on the existing auth/profile base rather than treating the whole platform as unimplemented.

@@ -9,21 +9,81 @@
   --color-accent-glow: rgba(255, 255, 255, 0.15);
   --color-border: rgba(255, 255, 255, 0.1);
 
-  --font-display: "Space Grotesk", sans-serif;
-  --font-heading: "Bebas Neue", sans-serif;
-  --font-body: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-display: var(--font-space-grotesk);
+  --font-heading: var(--font-bebas-neue);
+  --font-body: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+:root {
+  --yantra-background: #fafafa;
+  --yantra-foreground: #111111;
+  --yantra-accent: #6d28d9;
+  --yantra-accent-soft: rgba(109, 40, 217, 0.12);
+  --yantra-muted: #6b7280;
+  --yantra-border: rgba(17, 17, 17, 0.08);
+  --yantra-shell: rgba(255, 255, 255, 0.78);
+  --yantra-panel: rgba(255, 255, 255, 0.92);
+  --yantra-shadow: rgba(109, 40, 217, 0.18);
+}
+
+:root[data-editor-theme='dark'] {
+  --yantra-background: #0d0d0d;
+  --yantra-foreground: #e5e5e5;
+  --yantra-accent: #7c3aed;
+  --yantra-accent-soft: rgba(124, 58, 237, 0.18);
+  --yantra-muted: #9ca3af;
+  --yantra-border: rgba(229, 229, 229, 0.08);
+  --yantra-shell: rgba(13, 13, 13, 0.84);
+  --yantra-panel: rgba(18, 18, 24, 0.9);
+  --yantra-shadow: rgba(124, 58, 237, 0.26);
 }
 
 @layer base {
   html {
     background-color: var(--color-bg);
+    scroll-padding-top: 7rem;
   }
 
   body {
     background-color: var(--color-bg);
     color: var(--color-text);
+    font-family: var(--font-body);
     overflow-x: hidden;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  summary {
+    outline: none;
+  }
+
+  input,
+  textarea,
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0 solid transparent;
+    box-shadow: none;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.92), 0 0 0 4px rgba(255, 255, 255, 0.16);
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   html[data-yantra-overlay='true'],
@@ -53,16 +113,43 @@
   }
 }
 
-html.lenis {
-  scroll-behavior: auto;
-}
-
+html.lenis,
 html.lenis body {
   height: auto;
 }
 
+html.lenis {
+  scroll-behavior: auto;
+}
+
 .lenis.lenis-stopped {
   overflow: hidden;
+}
+
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch],
+.lenis [data-lenis-prevent-vertical],
+.lenis [data-lenis-prevent-horizontal] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+.lenis.lenis-autoToggle {
+  transition-property: overflow;
+  transition-duration: 1ms;
+  transition-behavior: allow-discrete;
+}
+
+html[data-yantra-motion='reduced'] {
+  scroll-behavior: auto;
 }
 
 .input-field:focus ~ .input-label,
@@ -105,8 +192,27 @@ html.lenis body {
   }
 }
 
+@keyframes yantra-loader-sheen {
+  0% {
+    transform: translateX(-140%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(180%);
+    opacity: 0;
+  }
+}
+
 .animate-blob {
   animation: blob 20s infinite alternate ease-in-out;
+}
+
+.animate-yantra-loader-sheen {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), transparent);
+  animation: yantra-loader-sheen 1.15s linear infinite;
 }
 
 .animation-delay-2000 {

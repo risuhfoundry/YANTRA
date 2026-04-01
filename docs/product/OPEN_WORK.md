@@ -1,73 +1,68 @@
 # Open Work
 
-## Highest-Priority Unbuilt Work
+## Highest-Priority Product And Engineering Work
 
-### Platform Foundation
+### Foundation hardening
 
-- add authentication
-- add student profiles
-- add persistent storage
-- define content and roadmap schema
-- define analytics/event model
+- add tests for auth redirects, onboarding writes, profile reads/writes, dashboard seeding, and API routes
+- add monitoring and error reporting for auth, chat, and docs support
+- harden deployment checks and post-deploy smoke validation
 
-### Dashboard
+### Dashboard intelligence
 
-- replace hardcoded arrays with real data
-- connect dashboard state to a student profile
-- support progress persistence
-- define room unlock logic
-- add real next-step recommendations
+- replace seeded dashboard copy with real learner-adaptive state
+- connect progress, milestones, and recommendations to meaningful persistent learner activity
+- define room unlock and recommendation logic
+- replace demo curriculum and performance sections with real models
 
-### Chat
+### Yantra chat and Support Desk
 
-- persist chat sessions
-- add better error handling and monitoring
-- support richer prompts from product context
-- prepare for multi-LLM routing if needed later
+- pass richer learner context into Yantra prompts
+- decide on streaming versus non-streaming responses
+- add operational visibility for chat and docs-support failures
+- decide whether Support Desk should stay ephemeral or gain persistence and escalation paths
 
-### Practice Rooms
+### Access and support operations
+
+- build an internal review workflow for `access_requests`
+- define support analytics or ticket handoff if docs support becomes a core channel
+- add clearer admissions or partner triage tooling
+
+### Practice rooms
 
 - Python execution environment
-- neural net visual builder
+- neural-net builder
 - dataset explorer
 - prompt lab
 - shared evaluation and feedback framework
 
-### Institutional Features
+### Institution and outcome layers
 
 - teacher dashboard
 - class analytics
-- classroom mode
-- smartboard UI behavior
+- classroom mode or smartboard behavior
+- certification workflows
+- portfolio and hiring signals
 
-## Product Gaps
+## Current Product Gaps
 
-- no real learner onboarding
-- no actual personalization engine
-- no real certification system
-- no project submission workflow
-- no hiring or placement flow
+- onboarding exists, but it is still a lean first-pass experience
+- the dashboard persists starter data, but it is not truly adaptive yet
+- the access pipeline persists requests, but no one can review them inside the product
+- docs support exists, but it is still a local docs-grounded support layer rather than a full customer-support system
 
-## Engineering Gaps
+## Current Engineering Gaps
 
-- no database
-- no auth provider
-- no test suite
-- no API layer beyond chat
-- no content management workflow
-- no monitoring or observability setup
-
-## Content Gaps
-
-- no structured curriculum in code
-- no lesson repository
-- no guided challenge catalog
-- no dataset library
+- no automated test suite
+- no analytics or observability layer
+- no internal access-request operations UI
+- no content-management workflow for docs or marketing content
+- no richer learner-memory or support-escalation system
 
 ## Cleanup Work That Needs Approval
 
 These are intentionally not executed yet:
 
-- moving root-level reference assets into `docs/reference/`
-- cleaning old root artifacts
-- deciding whether old deleted files should be restored, archived, or removed from version control
+- deleting root-level local artifacts such as `dist/` or `node_modules_broken/`
+- moving or removing reference assets under `docs/reference/`
+- large-scale file-organization cleanup that is unrelated to runtime behavior

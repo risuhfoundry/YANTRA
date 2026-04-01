@@ -3,12 +3,12 @@
     "target": "ES2022",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
-    "module": "ESNext",
     "lib": [
       "ES2022",
       "DOM",
       "DOM.Iterable"
     ],
+    "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "isolatedModules": true,
@@ -17,7 +17,8 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": [
-        "./*"
+        "./*",
+        "./src/*"
       ]
     },
     "allowImportingTsExtensions": true,
@@ -41,6 +42,7 @@
   ],
   "exclude": [
     "node_modules",
-    "node_modules_broken"
+    "node_modules_broken",
+    "dist"
   ]
 }
