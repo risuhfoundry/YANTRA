@@ -7,6 +7,7 @@ import {
   yantraSystemPrompt,
   type YantraChatMessage,
 } from '@/src/features/chat/yantra-chat';
+import { getYantraAiServiceTimeoutMs, getYantraAiServiceUrl } from '@/src/lib/yantra-ai-service';
 import { upsertAuthenticatedChatHistory } from '@/src/lib/supabase/chat-history';
 import { hasSupabaseEnv } from '@/src/lib/supabase/env';
 import { getAuthenticatedProfile } from '@/src/lib/supabase/profiles';
@@ -29,42 +30,12 @@ type YantraAiServiceResponse = {
 };
 
 const DEFAULT_TOP_K = 3;
-const DEFAULT_SERVICE_TIMEOUT_MS = 65000;
-const DEFAULT_LOCAL_AI_SERVICE_URL = 'http://127.0.0.1:8000';
 
 function toGeminiContent(message: YantraChatMessage): Content {
   return {
     role: message.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: message.content }],
   };
-}
-
-function normalizeServiceUrl(rawUrl?: string | null) {
-  const value = rawUrl?.trim();
-  return value ? value.replace(/\/+$/, '') : null;
-}
-
-function getYantraAiTarget() {
-  return process.env.YANTRA_AI_TARGET?.trim().toLowerCase() === 'render' ? 'render' : 'local';
-}
-
-function getYantraAiServiceUrl() {
-  if (getYantraAiTarget() === 'render') {
-    return normalizeServiceUrl(process.env.YANTRA_AI_RENDER_URL || process.env.YANTRA_AI_SERVICE_URL);
-  }
-
-  return normalizeServiceUrl(process.env.YANTRA_AI_LOCAL_URL) || DEFAULT_LOCAL_AI_SERVICE_URL;
-}
-
-function getYantraAiServiceTimeoutMs() {
-  const rawValue = process.env.YANTRA_AI_SERVICE_TIMEOUT_MS?.trim();
-  const parsed = rawValue ? Number.parseInt(rawValue, 10) : Number.NaN;
-
-  if (!Number.isFinite(parsed) || parsed < 1000) {
-    return DEFAULT_SERVICE_TIMEOUT_MS;
-  }
-
-  return parsed;
 }
 
 function inferCurrentPath(request: Request) {
