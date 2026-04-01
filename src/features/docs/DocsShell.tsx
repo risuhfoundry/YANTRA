@@ -84,7 +84,7 @@ function DocsTopNav({ isHome }: { isHome: boolean }) {
 
         <nav className="hidden items-center gap-10 lg:flex">
           {navItems.map((item) =>
-            item.isAnchor ? (
+            'isAnchor' in item && item.isAnchor ? (
               <a
                 key={item.label}
                 href={item.href}

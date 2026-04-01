@@ -10,6 +10,7 @@ Yantra is a Next.js 16 prototype for an AI-native learning platform. The current
 - persisted access requests
 - authenticated chat history continuity
 - a Render-backed Yantra chat assistant routed through the Python AI microservice
+- a room-only Sarvam-powered voice assistant layered on top of the same chat route
 - a separate Python AI microservice under `ai/`
 
 The app is no longer just a static marketing-plus-dashboard shell. Authentication and profile persistence are live; most learning data, roadmap logic, and room functionality are still demo content.
@@ -38,9 +39,12 @@ The main Yantra chat route now proxies into the Python AI microservice when `YAN
 ### API routes
 
 - `/api/chat` Next.js proxy to the Python Yantra AI service
+- `/api/chat/health` wake-check proxy for the configured Yantra AI service
 - `/api/chat/history` authenticated chat-history load
 - `/api/profile` authenticated profile read/update
 - `/api/access-requests` access-intent form submission
+- `/api/sarvam/stt` room voice transcription
+- `/api/sarvam/tts` room voice synthesis
 
 ## What Works Today
 
@@ -53,6 +57,7 @@ The main Yantra chat route now proxies into the Python AI microservice when `YAN
 - password reset email flow and reset page
 - Google OAuth sign-in through Supabase
 - reusable chat widget on the marketing site and dashboard
+- room-only push-to-talk voice assistant using Sarvam STT/TTS
 - authenticated chat history restore across sessions
 - access-request form validation, persistence, and server handling
 
@@ -99,6 +104,7 @@ Yantra/
 - npm
 - a Supabase project
 - a Gemini API key
+- a Sarvam API key for room voice
 - a deployed Yantra AI service URL for the main chat path
 
 ### Install
@@ -114,6 +120,7 @@ Copy `.env.example` to `.env.local` and set:
 ```env
 GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
 YANTRA_AI_SERVICE_URL="https://YOUR-YANTRA-AI-SERVICE.onrender.com"
+SARVAM_API_KEY="YOUR_SARVAM_API_KEY"
 NEXT_PUBLIC_SUPABASE_URL="https://YOUR_PROJECT_REF.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
 ```
@@ -141,7 +148,7 @@ uvicorn main:app --reload --port 8000
 
 On Windows PowerShell, activate the virtual environment with `.venv\\Scripts\\Activate.ps1`.
 
-If `YANTRA_AI_SERVICE_URL` is set in the root `.env.local`, the website chat uses the deployed Python service. If it is missing, `/api/chat` falls back to Gemini directly.
+If `YANTRA_AI_SERVICE_URL` is set in the root `.env.local`, the website chat uses the deployed Python service. If it is missing, `/api/chat` falls back to Gemini directly. The Python room voice sidebar uses Sarvam through the Next.js server routes, so it does not need a second worker process.
 
 ### Validate
 

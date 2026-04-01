@@ -3,20 +3,12 @@ import type { ExecuteCodePayload, ExecutionResult } from '@/types';
 const EXECUTION_TIMEOUT_MS = 15000;
 
 const readMockFlag = () => {
-  const processValue =
-    typeof process !== 'undefined'
-      ? process.env.NEXT_PUBLIC_USE_MOCK_API ?? process.env.VITE_USE_MOCK_API
-      : undefined;
-
-  let viteValue: string | undefined;
-
-  try {
-    viteValue = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.VITE_USE_MOCK_API;
-  } catch {
-    viteValue = undefined;
+  if (typeof process === 'undefined') {
+    return false;
   }
 
-  return viteValue === 'true' || processValue === 'true';
+  const configuredValue = process.env.NEXT_PUBLIC_USE_MOCK_API ?? process.env.VITE_USE_MOCK_API;
+  return configuredValue === 'true';
 };
 
 const USE_MOCK_API = readMockFlag();

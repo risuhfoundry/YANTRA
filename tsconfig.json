@@ -1,55 +1,48 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
     "lib": [
-      "ES2020",
+      "ES2022",
       "DOM",
       "DOM.Iterable"
     ],
     "module": "ESNext",
     "skipLibCheck": true,
-    "moduleResolution": "Bundler",
-    "resolveJsonModule": true,
+    "moduleResolution": "bundler",
     "isolatedModules": true,
-    "noEmit": true,
+    "moduleDetection": "force",
+    "allowJs": true,
     "jsx": "react-jsx",
-    "strict": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "src/*"
-      ],
-      "@/src/*": [
-        "src/*"
+        "./*",
+        "./src/*"
       ]
     },
-    "types": [
-      "vite/client"
-    ],
-    "allowJs": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "incremental": true,
-    "esModuleInterop": true,
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "strict": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
   },
   "include": [
-    "src/main.tsx",
-    "src/App.tsx",
-    "src/index.css",
-    "src/components/**/*",
-    "src/store/**/*",
-    "src/lib/monaco.ts",
-    "src/types/**/*",
-    "tailwind.config.ts",
-    "vite.config.ts",
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "node_modules_broken",
+    "dist"
   ]
 }

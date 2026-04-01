@@ -84,7 +84,10 @@ export default function App() {
   const isDark = theme === 'dark';
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.editorTheme = theme;
+    return () => {
+      delete document.documentElement.dataset.editorTheme;
+    };
   }, [theme]);
 
   return (

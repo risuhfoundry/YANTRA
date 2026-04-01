@@ -109,11 +109,13 @@ export default function DocsSupportWidget({ activeSlug = null }: DocsSupportWidg
 
       const data = (await response.json()) as { error?: string; reply?: string; sources?: DocsSupportSource[] };
 
-      if (!response.ok || !data.reply) {
+      const reply = data.reply?.trim();
+
+      if (!response.ok || !reply) {
         throw new Error(data.error || 'Support Desk could not respond right now.');
       }
 
-      setMessages((current) => [...current, assistantMessage(data.reply.trim())]);
+      setMessages((current) => [...current, assistantMessage(reply)]);
       setSources(Array.isArray(data.sources) ? data.sources : []);
     } catch (sendError) {
       setError(

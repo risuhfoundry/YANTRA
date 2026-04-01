@@ -60,45 +60,16 @@ The default local embedding model is now `sentence-transformers/all-MiniLM-L6-v2
 
 For chat generation, the service uses the official GitHub Copilot CLI and defaults to `gpt-5-mini`. The current installed Copilot CLI does not expose a `gpt-4.5 mini` option. It does expose `gpt-5-mini` and `gpt-4.1`.
 
-## LiveKit terminal voice
+## Room voice
 
-There is now a separate LiveKit terminal entrypoint at `livekit_terminal_agent.py`. It is designed so the voice layer stays thin and still reuses the existing Yantra `ChatService`.
+Room voice is no longer hosted in the Python service. The website now handles room voice directly through Next.js server routes using Sarvam STT/TTS plus the existing `/api/chat` path.
 
-Install the optional voice stack:
+That means:
 
-```powershell
-cd ai
-pip install -e .[voice]
-```
-
-Set these env vars in `.env`:
-
-```env
-LIVEKIT_URL=...
-LIVEKIT_API_KEY=...
-LIVEKIT_API_SECRET=...
-```
-
-For terminal-only local testing, start in console mode:
-
-```powershell
-python livekit_terminal_agent.py console --text
-```
-
-By default, the terminal agent now uses LiveKit Inference for speech-to-text and text-to-speech, so Sarvam is not required. You can try audio console mode with:
-
-```powershell
-python livekit_terminal_agent.py console
-```
-
-Notes:
-
-- `console` mode is the right local-first path before website wiring.
-- `dev`, `connect`, and `start` modes need `LIVEKIT_API_SECRET`.
-- LiveKit Inference is included in LiveKit Cloud and can provide STT/TTS without a separate provider key.
-- The safer default for terminal speech is `deepgram/aura-2` with voice `athena`.
-- If you want Sarvam specifically, set `YANTRA_VOICE_BACKEND=sarvam` and add `SARVAM_API_KEY`.
-- The LiveKit agent still uses Yantra retrieval and the provider ring through the existing Python service code.
+- no separate voice worker process
+- no second Render service for room voice
+- no extra Python voice dependencies
+- the Python service stays focused on grounded chat and retrieval
 
 The default chat mode is now the bounded provider ring:
 
