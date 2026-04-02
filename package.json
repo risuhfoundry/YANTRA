@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "analyze": "cross-env ANALYZE=true next build --webpack",
+    "analyze:turbo": "next experimental-analyze",
     "start": "next start",
     "preview": "next start",
     "clean": "rmdir /s /q .next 2>nul",
