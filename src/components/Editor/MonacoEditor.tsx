@@ -11,9 +11,17 @@ interface MonacoEditorProps {
   file: EditorFile | null;
   theme: EditorTheme;
   onChange: (value: string) => void;
+  readOnly?: boolean;
+  showAIEnhancements?: boolean;
 }
 
-export const MonacoEditor = ({ file, theme, onChange }: MonacoEditorProps) => {
+export const MonacoEditor = ({
+  file,
+  theme,
+  onChange,
+  readOnly = false,
+  showAIEnhancements = true,
+}: MonacoEditorProps) => {
   const executionResult = useEditorStore((state) => state.executionResult);
   const lastExecutedFileId = useEditorStore((state) => state.lastExecutedFileId);
   const [editorInstance, setEditorInstance] = useState<editor.IStandaloneCodeEditor | null>(null);
@@ -72,24 +80,32 @@ export const MonacoEditor = ({ file, theme, onChange }: MonacoEditorProps) => {
           setEditorInstance(nextEditorInstance);
           setMonacoInstance(monaco);
           monaco.editor.setTheme(resolveMonacoTheme(theme));
-          nextEditorInstance.focus();
+
+          if (!readOnly) {
+            nextEditorInstance.focus();
+          }
         }}
-        options={editorOptions}
+        options={{
+          ...editorOptions,
+          readOnly,
+        }}
         path={`${file.id}.${LANGUAGE_META[file.language].extension}`}
         saveViewState
         theme={resolveMonacoTheme(theme)}
         value={file.content}
       />
 
-      <HoverExplain editor={editorInstance} file={file} theme={theme} />
-      <InlineErrorFix
-        editor={editorInstance}
-        monaco={monacoInstance}
-        file={file}
-        stderr={stderr}
-        theme={theme}
-        onApplyFix={applyLineFix}
-      />
+      {showAIEnhancements ? <HoverExplain editor={editorInstance} file={file} theme={theme} /> : null}
+      {showAIEnhancements ? (
+        <InlineErrorFix
+          editor={editorInstance}
+          monaco={monacoInstance}
+          file={file}
+          stderr={stderr}
+          theme={theme}
+          onApplyFix={applyLineFix}
+        />
+      ) : null}
     </div>
   );
 };
