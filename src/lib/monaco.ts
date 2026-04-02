@@ -115,6 +115,7 @@ export const editorOptions: editor.IStandaloneEditorConstructionOptions = {
   fontLigatures: true,
   fontSize: 14,
   formatOnPaste: true,
+  glyphMargin: true,
   lineHeight: 22,
   minimap: {
     enabled: true,

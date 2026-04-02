@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { executeCode } from '@/api/execute';
-import type { EditorFile, EditorTab, EditorTheme, ExecutionResult, ExecutionStatus } from '@/types';
+import type { AIMessage, AIPanelState, EditorFile, EditorTab, EditorTheme, ExecutionResult, ExecutionStatus } from '@/types';
 
 interface EditorStore {
   activeFile: EditorFile | null;
@@ -9,7 +9,14 @@ interface EditorStore {
   theme: EditorTheme;
   executionResult: ExecutionResult | null;
   executionStatus: ExecutionStatus;
+  lastExecutedFileId: string | null;
   stdin: string;
+  aiPanel: AIPanelState;
+  challengeCompletion: {
+    visible: boolean;
+    challengeId: string | null;
+    completedAt: number | null;
+  };
   openTab: (file: EditorFile) => void;
   closeTab: (fileId: string) => void;
   setActiveFile: (fileId: string) => void;
@@ -18,6 +25,14 @@ interface EditorStore {
   runCode: () => Promise<ExecutionResult | null>;
   clearConsole: () => void;
   setStdin: (value: string) => void;
+  toggleAIPanel: () => void;
+  setAIPanelOpen: (open: boolean) => void;
+  sendAIMessage: (message: Pick<AIMessage, 'role' | 'content'> & Partial<Pick<AIMessage, 'isStreaming'>>) => string;
+  clearAIChat: () => void;
+  appendStreamToken: (messageId: string, token: string) => void;
+  setAIMessageStreaming: (messageId: string, isStreaming: boolean) => void;
+  showChallengeCompletion: (challengeId: string) => void;
+  hideChallengeCompletion: () => void;
 }
 
 const DEFAULT_FILE: EditorFile = {
@@ -38,6 +53,11 @@ const toFile = (tab: EditorTab): EditorFile => ({
   language: tab.language,
   content: tab.content,
 });
+
+const createMessageId = () =>
+  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `ai-message-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 let statusResetTimer: number | null = null;
 
@@ -60,7 +80,17 @@ export const useEditorStore = create<EditorStore>()(
       theme: 'dark',
       executionResult: null,
       executionStatus: 'idle',
+      lastExecutedFileId: null,
       stdin: '',
+      aiPanel: {
+        open: false,
+        messages: [],
+      },
+      challengeCompletion: {
+        visible: false,
+        challengeId: null,
+        completedAt: null,
+      },
       openTab: (file) =>
         set((state) => {
           const existingTab = state.openTabs.find((tab) => tab.id === file.id);
@@ -161,6 +191,7 @@ export const useEditorStore = create<EditorStore>()(
 
         set({
           executionStatus: 'running',
+          lastExecutedFileId: activeFile.id,
         });
 
         try {
@@ -173,6 +204,7 @@ export const useEditorStore = create<EditorStore>()(
           set({
             executionResult: result,
             executionStatus: result.exitCode === 0 ? 'success' : 'error',
+            lastExecutedFileId: activeFile.id,
           });
           scheduleStatusReset(set);
           return result;
@@ -188,6 +220,7 @@ export const useEditorStore = create<EditorStore>()(
           set({
             executionResult: errorResult,
             executionStatus: 'error',
+            lastExecutedFileId: activeFile.id,
           });
           scheduleStatusReset(set);
           return errorResult;
@@ -197,10 +230,95 @@ export const useEditorStore = create<EditorStore>()(
         set({
           executionResult: null,
           executionStatus: 'idle',
+          lastExecutedFileId: null,
         }),
       setStdin: (value) =>
         set({
           stdin: value,
+        }),
+      toggleAIPanel: () =>
+        set((state) => ({
+          aiPanel: {
+            ...state.aiPanel,
+            open: !state.aiPanel.open,
+          },
+        })),
+      setAIPanelOpen: (open) =>
+        set((state) => ({
+          aiPanel: {
+            ...state.aiPanel,
+            open,
+          },
+        })),
+      sendAIMessage: (message) => {
+        const messageId = createMessageId();
+        const nextMessage: AIMessage = {
+          id: messageId,
+          role: message.role,
+          content: message.content,
+          timestamp: new Date(),
+          isStreaming: message.isStreaming ?? false,
+        };
+
+        set((state) => ({
+          aiPanel: {
+            ...state.aiPanel,
+            messages: [...state.aiPanel.messages, nextMessage],
+          },
+        }));
+
+        return messageId;
+      },
+      clearAIChat: () =>
+        set((state) => ({
+          aiPanel: {
+            ...state.aiPanel,
+            messages: [],
+          },
+        })),
+      appendStreamToken: (messageId, token) =>
+        set((state) => ({
+          aiPanel: {
+            ...state.aiPanel,
+            messages: state.aiPanel.messages.map((message) =>
+              message.id === messageId
+                ? {
+                    ...message,
+                    content: `${message.content}${token}`,
+                  }
+                : message,
+            ),
+          },
+        })),
+      setAIMessageStreaming: (messageId, isStreaming) =>
+        set((state) => ({
+          aiPanel: {
+            ...state.aiPanel,
+            messages: state.aiPanel.messages.map((message) =>
+              message.id === messageId
+                ? {
+                    ...message,
+                    isStreaming,
+                  }
+                : message,
+            ),
+          },
+        })),
+      showChallengeCompletion: (challengeId) =>
+        set({
+          challengeCompletion: {
+            visible: true,
+            challengeId,
+            completedAt: Date.now(),
+          },
+        }),
+      hideChallengeCompletion: () =>
+        set({
+          challengeCompletion: {
+            visible: false,
+            challengeId: null,
+            completedAt: null,
+          },
         }),
     }),
     {

@@ -1,3 +1,4 @@
+import { AIPanel } from '@/components/AI/AIPanel';
 import { MonacoEditor } from '@/components/Editor/MonacoEditor';
 import { TabBar } from '@/components/Editor/TabBar';
 import { ConsolePanel } from '@/components/Execution/ConsolePanel';
@@ -36,18 +37,24 @@ export const EditorShell = () => {
         />
       </div>
 
-      <div className="min-h-0 flex-1">
-        <MonacoEditor
-          file={activeFile}
-          onChange={(value) => {
-            if (!activeFile) {
-              return;
-            }
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="flex h-full min-h-0 overflow-hidden">
+          <div className="min-w-0 flex-1">
+            <MonacoEditor
+              file={activeFile}
+              onChange={(value) => {
+                if (!activeFile) {
+                  return;
+                }
 
-            updateFileContent(activeFile.id, value);
-          }}
-          theme={theme}
-        />
+                updateFileContent(activeFile.id, value);
+              }}
+              theme={theme}
+            />
+          </div>
+
+          <AIPanel file={activeFile} theme={theme} />
+        </div>
       </div>
 
       <div

@@ -81,6 +81,10 @@ export default function App() {
   const openTab = useEditorStore((state) => state.openTab);
   const theme = useEditorStore((state) => state.theme);
   const toggleTheme = useEditorStore((state) => state.toggleTheme);
+  const aiPanelOpen = useEditorStore((state) => state.aiPanel.open);
+  const toggleAIPanel = useEditorStore((state) => state.toggleAIPanel);
+  const challengeCompletion = useEditorStore((state) => state.challengeCompletion);
+  const hideChallengeCompletion = useEditorStore((state) => state.hideChallengeCompletion);
   const isDark = theme === 'dark';
 
   useEffect(() => {
@@ -89,6 +93,20 @@ export default function App() {
       delete document.documentElement.dataset.editorTheme;
     };
   }, [theme]);
+
+  useEffect(() => {
+    if (!challengeCompletion.visible) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      hideChallengeCompletion();
+    }, 4200);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [challengeCompletion.visible, hideChallengeCompletion]);
 
   return (
     <div className="relative min-h-screen overflow-hidden px-4 py-4 sm:px-6 lg:px-8">
@@ -113,7 +131,7 @@ export default function App() {
               <div className="max-w-3xl">
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Day 2 Execution Engine
+                  Day 3 AI Intelligence Layer
                 </div>
 
                 <div className="space-y-2">
@@ -122,21 +140,37 @@ export default function App() {
                       isDark ? 'text-white' : 'text-slate-950'
                     }`}
                   >
-                    Run code, inspect output, and validate challenge cases without leaving the editor.
+                    Code with inline AI hints, reviews, and debugging help woven directly into the editor.
                   </h1>
                   <p
                     className={`max-w-2xl text-sm leading-6 sm:text-base ${
                       isDark ? 'text-slate-300' : 'text-slate-600'
                     }`}
                   >
-                    Day 2 adds execution controls, a resizable console, stdin support, and a lightweight test runner on top of
-                    the multi-file Monaco workspace.
+                    Day 3 adds a streaming Yantra AI side panel, line-level explanations inside Monaco, and challenge completion
+                    guidance when your tests land cleanly.
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 self-start">
                 <RunButton />
+                <button
+                  type="button"
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    aiPanelOpen
+                      ? 'bg-violet-500 text-white shadow-[0_12px_30px_rgba(124,58,237,0.28)]'
+                      : isDark
+                        ? 'bg-violet-500/14 text-violet-200 hover:bg-violet-500/20'
+                        : 'bg-violet-500/12 text-violet-700 hover:bg-violet-500/18'
+                  }`}
+                  onClick={toggleAIPanel}
+                  aria-label={aiPanelOpen ? 'Close AI panel' : 'Open AI panel'}
+                  title={aiPanelOpen ? 'Close AI panel' : 'Open AI panel'}
+                >
+                  <span aria-hidden="true">✦</span>
+                  AI
+                </button>
                 <button
                   type="button"
                   className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
@@ -194,6 +228,19 @@ export default function App() {
             </div>
           </div>
         </header>
+
+        {challengeCompletion.visible ? (
+          <div
+            className={`flex items-center justify-between gap-3 rounded-[24px] border px-4 py-3 text-sm shadow-[0_18px_40px_rgba(16,185,129,0.12)] ${
+              isDark
+                ? 'border-emerald-400/20 bg-emerald-500/12 text-emerald-100'
+                : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-800'
+            }`}
+          >
+            <span className="font-semibold">✓ Challenge Complete!</span>
+            <span className={isDark ? 'text-emerald-200/80' : 'text-emerald-700/80'}>All visible test cases passed.</span>
+          </div>
+        ) : null}
 
         <EditorShell />
       </div>

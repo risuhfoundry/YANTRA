@@ -1,5 +1,6 @@
 import { Check, FlaskConical, LoaderCircle, TriangleAlert, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { getYantraUserId, postRoadmapComplete } from '@/api/ai';
 import { executeCode } from '@/api/execute';
 import { useEditorStore } from '@/store/useEditorStore';
 
@@ -23,8 +24,12 @@ const TEST_CASES: TestCase[] = [
 export const TestCaseRunner = () => {
   const activeFile = useEditorStore((state) => state.activeFile);
   const theme = useEditorStore((state) => state.theme);
+  const setAIPanelOpen = useEditorStore((state) => state.setAIPanelOpen);
+  const sendAIMessage = useEditorStore((state) => state.sendAIMessage);
+  const showChallengeCompletion = useEditorStore((state) => state.showChallengeCompletion);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<TestCaseResult[]>([]);
+  const completedChallengesRef = useRef<Set<string>>(new Set());
   const isDark = theme === 'dark';
 
   useEffect(() => {
@@ -32,6 +37,26 @@ export const TestCaseRunner = () => {
   }, [activeFile?.id, activeFile?.content, activeFile?.language]);
 
   const passedCount = useMemo(() => results.filter((result) => result.didPass).length, [results]);
+  const didCompleteChallenge = results.length === TEST_CASES.length && passedCount === TEST_CASES.length;
+
+  useEffect(() => {
+    if (!activeFile || !didCompleteChallenge || completedChallengesRef.current.has(activeFile.id)) {
+      return;
+    }
+
+    completedChallengesRef.current.add(activeFile.id);
+    showChallengeCompletion(activeFile.id);
+    setAIPanelOpen(true);
+    sendAIMessage({
+      role: 'assistant',
+      content: `Congratulations! ${activeFile.name} passed ${TEST_CASES.length}/${TEST_CASES.length} tests. Ready for the next challenge?`,
+    });
+
+    void postRoadmapComplete({
+      userId: getYantraUserId(),
+      challengeId: activeFile.id,
+    }).catch(() => null);
+  }, [activeFile, didCompleteChallenge, sendAIMessage, setAIPanelOpen, showChallengeCompletion]);
 
   const runAllTests = async () => {
     if (!activeFile || isRunning) {
@@ -106,12 +131,22 @@ export const TestCaseRunner = () => {
       <div
         className="rounded-2xl border px-4 py-3 text-sm"
         style={{
-          background: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.9)',
-          borderColor: 'var(--yantra-border)',
-          color: 'var(--yantra-foreground)',
+          background: didCompleteChallenge
+            ? isDark
+              ? 'rgba(16, 185, 129, 0.14)'
+              : 'rgba(16, 185, 129, 0.12)'
+            : isDark
+              ? 'rgba(255, 255, 255, 0.03)'
+              : 'rgba(255, 255, 255, 0.9)',
+          borderColor: didCompleteChallenge ? 'rgba(16, 185, 129, 0.24)' : 'var(--yantra-border)',
+          color: didCompleteChallenge ? (isDark ? '#bbf7d0' : '#065f46') : 'var(--yantra-foreground)',
         }}
       >
-        {results.length > 0 ? `${passedCount}/${TEST_CASES.length} passed` : 'Run the suite to see case-by-case results.'}
+        {didCompleteChallenge
+          ? '✓ Challenge Complete!'
+          : results.length > 0
+            ? `${passedCount}/${TEST_CASES.length} passed`
+            : 'Run the suite to see case-by-case results.'}
       </div>
 
       <div className="grid min-h-0 flex-1 gap-3 overflow-auto">
