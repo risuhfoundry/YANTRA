@@ -49,7 +49,12 @@ export default function RootLayout({
       className={`${displayFont.variable} ${headingFont.variable} ${bodyFont.variable} ${monoFont.variable}`}
     >
       <body className="bg-black text-white antialiased selection:bg-white selection:text-black">
-        <a href="#main-content" className="skip-link">Skip to main content</a>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-full focus:bg-white focus:px-4 focus:py-3 focus:font-mono focus:text-[10px] focus:uppercase focus:tracking-[0.22em] focus:text-black focus:no-underline focus:shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+        >
+          Skip to main content
+        </a>
         <ExperienceProvider>
           <main id="main-content" tabIndex={-1}>
             {children}
