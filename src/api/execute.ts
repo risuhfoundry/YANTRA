@@ -2,12 +2,20 @@ import type { ExecuteCodePayload, ExecutionResult } from '@/types';
 
 const EXECUTION_TIMEOUT_MS = 15000;
 
-const readMockFlag = () => {
-  if (typeof process === 'undefined') {
-    return false;
+const readEnvValue = (key: 'NEXT_PUBLIC_USE_MOCK_API' | 'VITE_USE_MOCK_API') => {
+  if (typeof process !== 'undefined') {
+    const processValue = process.env[key];
+
+    if (typeof processValue === 'string') {
+      return processValue;
+    }
   }
 
-  const configuredValue = process.env.NEXT_PUBLIC_USE_MOCK_API ?? process.env.VITE_USE_MOCK_API;
+  return (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.[key];
+};
+
+const readMockFlag = () => {
+  const configuredValue = readEnvValue('NEXT_PUBLIC_USE_MOCK_API') ?? readEnvValue('VITE_USE_MOCK_API');
   return configuredValue === 'true';
 };
 

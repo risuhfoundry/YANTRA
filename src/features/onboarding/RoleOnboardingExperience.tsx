@@ -43,12 +43,13 @@ import {
   type UserRole,
 } from '@/src/features/dashboard/student-profile-model';
 import { usePageTransition } from '@/src/features/motion/ExperienceProvider';
+import GlobalSidebar from '@/src/features/navigation/GlobalSidebar';
 
 type OnboardingStatus =
   | {
-      kind: 'error' | 'info' | 'success';
-      message: string;
-    }
+    kind: 'error' | 'info' | 'success';
+    message: string;
+  }
   | null;
 
 type RoleOnboardingExperienceProps = {
@@ -168,13 +169,12 @@ function StatusBanner({ status }: { status: OnboardingStatus }) {
 
   return (
     <div
-      className={`rounded-[1.4rem] border px-4 py-4 text-sm leading-relaxed ${
-        status.kind === 'error'
+      className={`rounded-[1.4rem] border px-4 py-4 text-sm leading-relaxed ${status.kind === 'error'
           ? 'border-red-300/25 bg-red-500/10 text-red-100'
           : status.kind === 'success'
             ? 'border-white/14 bg-white/[0.07] text-white'
             : 'border-white/10 bg-white/[0.04] text-white/72'
-      }`}
+        }`}
     >
       {status.message}
     </div>
@@ -184,14 +184,12 @@ function StatusBanner({ status }: { status: OnboardingStatus }) {
 function SidebarStep({ active, completed, icon: Icon, label }: { active: boolean; completed: boolean; icon: LucideIcon; label: string }) {
   return (
     <div
-      className={`flex items-center gap-3 rounded-full border px-3 py-3 ${
-        active ? 'border-white/10 bg-white/[0.06]' : completed ? 'border-white/8 bg-white/[0.025]' : 'border-transparent'
-      }`}
+      className={`flex items-center gap-3 rounded-full border px-3 py-3 ${active ? 'border-white/10 bg-white/[0.06]' : completed ? 'border-white/8 bg-white/[0.025]' : 'border-transparent'
+        }`}
     >
       <div
-        className={`flex h-8 w-8 items-center justify-center rounded-full border ${
-          active || completed ? 'border-white/14 bg-white/[0.06] text-white/82' : 'border-white/8 text-white/26'
-        }`}
+        className={`flex h-8 w-8 items-center justify-center rounded-full border ${active || completed ? 'border-white/14 bg-white/[0.06] text-white/82' : 'border-white/8 text-white/26'
+          }`}
       >
         <Icon size={14} />
       </div>
@@ -283,7 +281,7 @@ export default function RoleOnboardingExperience({
     }
 
     setIsSubmitting(true);
-    setStatus({ kind: 'info', message: 'Saving your selections and preparing the first version of your roadmap...' });
+    setStatus({ kind: 'info', message: 'Saving your selections and generating the first version of your roadmap...' });
 
     try {
       const response = await fetch('/api/profile', {
@@ -311,7 +309,22 @@ export default function RoleOnboardingExperience({
         throw new Error(payload.error || 'Yantra could not save your onboarding answers right now.');
       }
 
-      setStatus({ kind: 'success', message: 'Roadmap settings saved. Opening your dashboard...' });
+      setStatus({ kind: 'info', message: 'Profile saved. Building your dashboard roadmap...' });
+
+      const generateResponse = await fetch('/api/dashboard/generate', {
+        method: 'POST',
+      });
+
+      if (generateResponse.status === 401) {
+        window.location.href = '/login?message=Your%20session%20expired.%20Please%20log%20in%20again.&kind=error';
+        return;
+      }
+
+      if (!generateResponse.ok) {
+        console.error('Dashboard generation failed after onboarding.', await generateResponse.text().catch(() => ''));
+      }
+
+      setStatus({ kind: 'success', message: 'Roadmap ready. Opening your dashboard...' });
       startPageTransition();
       router.replace('/dashboard');
       router.refresh();
@@ -335,9 +348,8 @@ export default function RoleOnboardingExperience({
                 clearStatus();
                 setAgeRange(option);
               }}
-              className={`rounded-[1.9rem] border p-5 text-left transition-all ${
-                option === '29+' ? 'xl:col-span-2' : ''
-              } ${selected ? 'border-white bg-white/[0.12]' : 'border-white/8 bg-white/[0.03] hover:border-white/16 hover:bg-white/[0.05]'}`}
+              className={`rounded-[1.9rem] border p-5 text-left transition-all ${option === '29+' ? 'xl:col-span-2' : ''
+                } ${selected ? 'border-white bg-white/[0.12]' : 'border-white/8 bg-white/[0.03] hover:border-white/16 hover:bg-white/[0.05]'}`}
             >
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/22">
                 Category_{String(onboardingAgeRangeOptions.indexOf(option) + 1).padStart(2, '0')}
@@ -466,10 +478,8 @@ export default function RoleOnboardingExperience({
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/8 bg-black/65 backdrop-blur-2xl">
         <div className="flex h-14 items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/8 bg-white/[0.04] text-white/80 lg:hidden">
-              <Menu size={15} />
-            </span>
-            <Link href="/" className="font-heading text-2xl tracking-wider text-white lg:text-3xl">
+            <GlobalSidebar disableDesktop={true} className="flex h-12 w-12 items-center justify-center rounded-full border border-white/8 bg-white/[0.04] text-white/80 hover:bg-white/[0.1] lg:hidden cursor-pointer" />
+            <Link href="/" className="inline-flex min-h-12 items-center font-heading text-2xl tracking-wider text-white lg:text-3xl">
               YANTRA
             </Link>
           </div>
@@ -477,8 +487,8 @@ export default function RoleOnboardingExperience({
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/42">
               Step {currentStep + 1} of {stepCopy.length}
             </span>
-            <Link href="/auth/signout" className="hidden h-8 w-8 items-center justify-center rounded-full border border-white/8 bg-white/[0.04] text-white/70 hover:bg-white/[0.08] hover:text-white lg:inline-flex" aria-label="Sign out">
-              <X size={15} />
+            <Link href="/auth/signout" className="hidden h-12 w-12 items-center justify-center rounded-full border border-white/8 bg-white/[0.04] text-white/70 hover:bg-white/[0.08] hover:text-white lg:inline-flex" aria-label="Sign out">
+              <X size={15} aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -542,7 +552,7 @@ export default function RoleOnboardingExperience({
                 type="button"
                 onClick={handleBack}
                 disabled={currentStep === 0 || isSubmitting}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] ${currentStep === 0 || isSubmitting ? 'cursor-not-allowed text-white/20' : 'text-white/56 hover:bg-white/[0.04] hover:text-white'}`}
+                className={`inline-flex min-h-12 items-center gap-2 rounded-full px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] ${currentStep === 0 || isSubmitting ? 'cursor-not-allowed text-white/20' : 'text-white/56 hover:bg-white/[0.04] hover:text-white'}`}
               >
                 <ArrowLeft size={14} />
                 Back
